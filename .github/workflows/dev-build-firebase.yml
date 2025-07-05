@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-distribute:
+  setup-and-install:
     runs-on: ubuntu-latest
 
     env:
@@ -34,22 +34,68 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y jq
       - name: Authenticate with Expo
         run: pnpm exec eas whoami || pnpm exec eas login
-
-      - name: Trigger EAS build
-        id: eas-build
+  build-and-download:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger EAS Android build
+        id: eas-build-android
         run: |
-          BUILD_JSON=$(pnpm exec eas build --platform android --profile development --non-interactive --json)
-          echo "$BUILD_JSON" > build-result.json
-          BUILD_URL=$(echo "$BUILD_JSON" | jq -r '.builds.android.artifacts.buildUrl')
+          pnpm exec eas build --platform android --profile development --non-interactive --json > build-result-android.json 2>/dev/null
+          BUILD_URL=$(jq -r '.[0].artifacts.buildUrl' < build-result-android.json)
           echo "BUILD_URL=$BUILD_URL" >> $GITHUB_ENV
-
       - name: Download APK
         run: |
           curl -L -o app-dev.apk "$BUILD_URL"
-
+  upload:
+    runs-on: ubuntu-latest
+    steps:
       - name: Upload to Firebase App Distribution
         run: |
           pnpm exec firebase appdistribution:distribute app-dev.apk \
             --app "$FIREBASE_APP_ID" \
             --testers "$TESTERS" \
             --release-notes "Auto-uploaded build from GitHub Actions on $(date +'%Y-%m-%d %H:%M')"
+            - name: Notify Slack of build status
+            if: always()  # runs even if previous steps fail
+            env:
+              SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+              GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              GITHUB_COMMIT_SHA: ${{ github.sha }}
+              GITHUB_COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+            run: |
+              if [ "${{ job.status }}" == "success" ]; then
+                STATUS_EMOJI=":white_check_mark:"
+                STATUS_TEXT="Build succeeded"
+              else
+                STATUS_EMOJI=":x:"
+                STATUS_TEXT="Build failed"
+              fi
+
+              PAYLOAD=$(jq -n \
+                --arg text "$STATUS_EMOJI $STATUS_TEXT for commit <$GITHUB_COMMIT_URL|${GITHUB_COMMIT_SHA::7}>." \
+                --arg details "See workflow run: <$GITHUB_RUN_URL|here>" \
+                '{text: "\($text)\n\($details)"}')
+
+              curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$SLACK_WEBHOOK_URL"
+      - name: Notify Slack of build status
+        if: always() # runs even if previous steps fail
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GITHUB_COMMIT_SHA: ${{ github.sha }}
+          GITHUB_COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+          STATUS_EMOJI=":white_check_mark:"
+          STATUS_TEXT="Build succeeded"
+          else
+          STATUS_EMOJI=":x:"
+          STATUS_TEXT="Build failed"
+          fi
+
+          PAYLOAD=$(jq -n \
+          --arg text "$STATUS_EMOJI $STATUS_TEXT for commit <$GITHUB_COMMIT_URL|${GITHUB_COMMIT_SHA::7}>." \
+          --arg details "See workflow run: <$GITHUB_RUN_URL|here>" \
+          '{text: "\($text)\n\($details)"}')
+
+          curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$SLACK_WEBHOOK_URL"
