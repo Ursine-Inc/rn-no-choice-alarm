@@ -24,11 +24,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "pnpm"
-      - name: Set up Corepack + PNPM
+      - name: Enable and activate pnpm via Corepack
         run: |
           corepack enable
-          corepack prepare pnpm@latest --activate
+          corepack prepare pnpm@8.15.5 --activate
           pnpm -v
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
