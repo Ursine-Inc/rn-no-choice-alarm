@@ -50,7 +50,6 @@
     "eslint-config-expo": "~9.2.0",
     "husky": "^8.0.0",
     "typescript": "~5.8.3",
-    "eas-cli": "^16.13.4",
     "firebase-tools": "^14.9.0"
   },
   "private": true,
