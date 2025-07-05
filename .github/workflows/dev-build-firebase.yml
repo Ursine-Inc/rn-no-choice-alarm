@@ -31,6 +31,7 @@ jobs:
           corepack enable
           corepack prepare pnpm@8.15.5 --activate
           pnpm -v
+          pnpm setup
       - name: Add EAS CLI
         run: pnpm add -g eas-cli
       - name: Install dependencies
