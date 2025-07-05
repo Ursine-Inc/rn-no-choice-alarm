@@ -8,6 +8,7 @@ on:
 
 jobs:
   setup-and-install:
+    name: "Bootstrap and install"
     runs-on: ubuntu-latest
 
     env:
@@ -29,11 +30,22 @@ jobs:
           corepack enable
           corepack prepare pnpm@8.15.5 --activate
           pnpm -v
+      - name: Install dependencies
+        run: pnpm install
+  install-jq:
+    name: "Install JQ"
+    runs-on: ubuntu-latest
+    steps:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
+  authenticate:
+    name: "Authenticate"
+    runs-on: ubuntu-latest
+    steps:
       - name: Authenticate with Expo
         run: pnpm exec eas whoami || pnpm exec eas login
   build-and-download:
+    name: "Build and Download"
     runs-on: ubuntu-latest
     steps:
       - name: Trigger EAS Android build
@@ -46,6 +58,7 @@ jobs:
         run: |
           curl -L -o app-dev.apk "$BUILD_URL"
   upload:
+    name: "Upload to Firebase"
     runs-on: ubuntu-latest
     steps:
       - name: Upload to Firebase App Distribution
@@ -76,6 +89,10 @@ jobs:
                 '{text: "\($text)\n\($details)"}')
 
               curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$SLACK_WEBHOOK_URL"
+  slack:
+    name: "Notify Slack"
+    runs-on: ubuntu-latest
+    steps:
       - name: Notify Slack of build status
         if: always() # runs even if previous steps fail
         env:
