@@ -11,6 +11,7 @@ env:
   FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
   FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
   TESTERS: ${{ vars.TESTERS }}
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 jobs:
   deploy-android:
     name: "Deploy to Android"
@@ -52,8 +53,14 @@ jobs:
             --app "$FIREBASE_APP_ID" \
             --testers "$TESTERS" \
             --release-notes "Auto-uploaded build from GitHub Actions on $(date +'%Y-%m-%d %H:%M')"
+          echo "GITHUB_RUN_URL=$GITHUB_RUN_URL" >> $GITHUB_ENV
+          echo "GITHUB_COMMIT_SHA=$GITHUB_COMMIT_SHA" >> $GITHUB_ENV
+          echo "GITHUB_COMMIT_URL=$GITHUB_COMMIT_URL" >> $GITHUB_ENV
       - name: Notify Slack of build status
         run: |
+          echo "GITHUB_RUN_URL=$GITHUB_RUN_URL"
+          echo "GITHUB_COMMIT_SHA=$GITHUB_COMMIT_SHA"
+          echo "GITHUB_COMMIT_URL=$GITHUB_COMMIT_URL"
           if [ "${{ job.status }}" == "success" ]; then
           STATUS_EMOJI=":white_check_mark:"
           STATUS_TEXT="Build succeeded"
@@ -61,10 +68,11 @@ jobs:
           STATUS_EMOJI=":x:"
           STATUS_TEXT="Build failed"
           fi
-
+          echo "STATUS_EMOJI=$STATUS_EMOJI"
           PAYLOAD=$(jq -n \
           --arg text "$STATUS_EMOJI $STATUS_TEXT for commit <$GITHUB_COMMIT_URL|${GITHUB_COMMIT_SHA::7}>." \
           --arg details "See workflow run: <$GITHUB_RUN_URL|here>" \
           '{text: "\($text)\n\($details)"}')
-
+          echo "PAYLOAD=$PAYLOAD"
+          echo "SLACK_WEBHOOK_URL=$SLACK_WEBHOOK_URL"
           curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$SLACK_WEBHOOK_URL"
