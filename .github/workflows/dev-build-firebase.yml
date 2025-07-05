@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN}}
       EAS_PROJECT_ID: ${{ secrets.EAS_PROJECT_ID }}
       FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
       FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
@@ -32,7 +33,7 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
       - name: Authenticate with Expo
-        run: pnpm exec eas whoami || pnpm exec eas login --token ${{ secrets.EXPO_TOKEN }}
+        run: pnpm exec eas whoami || pnpm exec eas login
 
       - name: Trigger EAS build
         id: eas-build
