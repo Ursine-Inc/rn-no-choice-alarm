@@ -31,6 +31,8 @@ jobs:
           corepack enable
           corepack prepare pnpm@8.15.5 --activate
           pnpm -v
+      - name: Clear pnpm cache completely
+        run: pnpm store clear
       - name: Install dependencies
         run: pnpm install
       - name: Install jq
