@@ -40,7 +40,7 @@ jobs:
       - name: Trigger EAS Android build
         id: eas-build-android
         run: |
-          pnpm exec eas build --platform android --profile development --non-interactive --json > build-result-android.json 2>/dev/null
+          pnpm exec eas build --platform android --profile development --non-interactive --json > build-result-android.json
           BUILD_URL=$(jq -r '.[0].artifacts.buildUrl' < build-result-android.json)
           echo "BUILD_URL=$BUILD_URL" >> $GITHUB_ENV
       - name: Download APK
