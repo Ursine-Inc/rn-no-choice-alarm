@@ -31,18 +31,18 @@ jobs:
           corepack enable
           corepack prepare pnpm@8.15.5 --activate
           pnpm -v
-      - name: Clear pnpm cache completely
-        run: pnpm store prune
+      - name: Add EAS CLI
+        run: pnpm add -g eas-cli
       - name: Install dependencies
         run: pnpm install
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
       - name: Authenticate with Expo
-        run: pnpm dlx eas-cli@latest whoami || pnpm dlx eas-cli@latest login
+        run: eas whoami || eas login
       - name: Trigger EAS Android build
         id: eas-build-android
         run: |
-          pnpm dlx eas-cli@latest build --platform android --profile development --non-interactive --json > build-result-android.json
+          eas build --platform android --profile development --non-interactive --json > build-result-android.json
           BUILD_URL=$(jq -r '.[0].artifacts.buildUrl' < build-result-android.json)
           echo "BUILD_URL=$BUILD_URL" >> $GITHUB_ENV
       - name: Download APK
