@@ -25,6 +25,7 @@ jobs:
       - name: Install dependencies
         run: |
           corepack enable
+          pnpm setup
           pnpm install
           pnpm add -g eas-cli firebase-tools jq
 
