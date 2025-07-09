@@ -32,14 +32,18 @@ jobs:
         run: pnpm install
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
-      - name: Authenticate with Expo
+      - name: Confirm EAS login
         run: pnpm eas whoami
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       - name: Trigger EAS Android build
         id: eas-build-android
         run: |
           pnpm eas whoami build --platform android --profile preview --non-interactive --json > build-result-android.json
           BUILD_URL=$(jq -r '.[0].artifacts.buildUrl' < build-result-android.json)
           echo "BUILD_URL=$BUILD_URL" >> $GITHUB_ENV
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       - name: Download APK
         run: |
           BUILD_FILE_NAME="app-preview-$(date +'%Y%m%d_%H%M').apk"
