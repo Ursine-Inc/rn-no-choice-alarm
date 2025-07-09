@@ -39,7 +39,7 @@ jobs:
       - name: Trigger EAS Android build
         id: eas-build-android
         run: |
-          pnpm eas whoami build --platform android --profile preview --non-interactive --json > build-result-android.json
+          pnpm eas build --platform android --profile preview --non-interactive --json > build-result-android.json
           BUILD_URL=$(jq -r '.[0].artifacts.buildUrl' < build-result-android.json)
           echo "BUILD_URL=$BUILD_URL" >> $GITHUB_ENV
         env:
