@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 
-export const styles = StyleSheet.create({
+const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -11,11 +11,13 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
   },
   reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    height: "100%",
+    width: "100%",
     position: "absolute",
+    top: 0,
+    left: 0,
   },
   alarm: {
     marginLeft: "10%",
@@ -28,3 +30,5 @@ export const styles = StyleSheet.create({
     gap: 10,
   },
 });
+
+export default styles;
