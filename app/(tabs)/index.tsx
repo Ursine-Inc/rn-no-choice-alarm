@@ -3,12 +3,9 @@ import { Image } from "expo-image";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import {
-  Gesture,
-  GestureDetector,
-  TextInput,
-} from "react-native-gesture-handler";
-import { styles } from "../index-styles";
+import { TextInput } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import styles from "../index-styles";
 
 export default function HomeScreen() {
   const native = Gesture.Native();
@@ -18,7 +15,7 @@ export default function HomeScreen() {
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
       headerImage={
         <Image
-          source={require("@/assets/images/partial-react-logo.png")}
+          source={require("@/assets/images/header-image.jpg")}
           style={styles.reactLogo}
         />
       }
