@@ -42,3 +42,4 @@ builds/
 *.log
 build*.json
 *.apk
+scratch/
