@@ -33,11 +33,11 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
       - name: Authenticate with Expo
-        run: pnpm dlx eas-cli@latest whoami
+        run: pnpm eas whoami
       - name: Trigger EAS Android build
         id: eas-build-android
         run: |
-          pnpm dlx eas-cli@latest build --platform android --profile preview --non-interactive --json > build-result-android.json
+          pnpm eas whoami build --platform android --profile preview --non-interactive --json > build-result-android.json
           BUILD_URL=$(jq -r '.[0].artifacts.buildUrl' < build-result-android.json)
           echo "BUILD_URL=$BUILD_URL" >> $GITHUB_ENV
       - name: Download APK
