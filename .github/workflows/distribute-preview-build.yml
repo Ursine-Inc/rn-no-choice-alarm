@@ -32,7 +32,7 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
       - name: Authenticate with Expo
-        run: pnpm dlx eas-cli@latest whoami || pnpm dlx eas-cli@latest login
+        run: pnpm exec eas-cli whoami || pnpm exec eas-cli login
       - name: Trigger EAS Android build
         id: eas-build-android
         run: |
