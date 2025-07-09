@@ -1,17 +1,16 @@
-name: Expo Dev Build & Distribute
+name: Distribute Preview Build
 
 on:
   push:
     branches:
       - "master"
   workflow_dispatch:
+
 env:
-  EXPO_TOKEN: ${{ secrets.EXPO_TOKEN}}
-  EAS_PROJECT_ID: ${{ secrets.EAS_PROJECT_ID }}
-  FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
   FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
-  TESTERS: ${{ vars.TESTERS }}
-  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+  GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+  GITHUB_COMMIT_SHA: ${{ github.sha }}
+  GITHUB_COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
 jobs:
   deploy-android:
     name: "Deploy to Android"
@@ -37,19 +36,18 @@ jobs:
       - name: Trigger EAS Android build
         id: eas-build-android
         run: |
-          pnpm dlx eas-cli@latest build --platform android --profile development --non-interactive --json > build-result-android.json
+          pnpm dlx eas-cli@latest build --platform android --profile preview --non-interactive --json > build-result-android.json
           BUILD_URL=$(jq -r '.[0].artifacts.buildUrl' < build-result-android.json)
           echo "BUILD_URL=$BUILD_URL" >> $GITHUB_ENV
       - name: Download APK
         run: |
-          curl -L -o app-dev.apk "$BUILD_URL"
+          BUILD_FILE_NAME="app-preview-$(date +'%Y%m%d_%H%M').apk"
+          echo "Downloaded APK as $BUILD_FILE_NAME"
+          curl -L -o "$BUILD_FILE_NAME" "$BUILD_URL"
+          echo "BUILD_FILE_NAME=$BUILD_FILE_NAME" >> $GITHUB_ENV
       - name: Upload to Firebase App Distribution
-        env:
-          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          GITHUB_COMMIT_SHA: ${{ github.sha }}
-          GITHUB_COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
         run: |
-          pnpm exec firebase appdistribution:distribute app-dev.apk \
+          pnpm exec firebase appdistribution:distribute "$BUILD_FILE_NAME" \
             --app "$FIREBASE_APP_ID" \
             --testers "$TESTERS" \
             --release-notes "Auto-uploaded build from GitHub Actions on $(date +'%Y-%m-%d %H:%M')"
@@ -57,10 +55,10 @@ jobs:
           echo "GITHUB_COMMIT_SHA=$GITHUB_COMMIT_SHA" >> $GITHUB_ENV
           echo "GITHUB_COMMIT_URL=$GITHUB_COMMIT_URL" >> $GITHUB_ENV
       - name: Notify Slack of build status
+        env:
+          TESTERS: ${{ vars.TESTERS }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          echo "GITHUB_RUN_URL=$GITHUB_RUN_URL"
-          echo "GITHUB_COMMIT_SHA=$GITHUB_COMMIT_SHA"
-          echo "GITHUB_COMMIT_URL=$GITHUB_COMMIT_URL"
           if [ "${{ job.status }}" == "success" ]; then
           STATUS_EMOJI=":white_check_mark:"
           STATUS_TEXT="Build succeeded"
@@ -68,11 +66,8 @@ jobs:
           STATUS_EMOJI=":x:"
           STATUS_TEXT="Build failed"
           fi
-          echo "STATUS_EMOJI=$STATUS_EMOJI"
           PAYLOAD=$(jq -n \
           --arg text "$STATUS_EMOJI $STATUS_TEXT for commit <$GITHUB_COMMIT_URL|${GITHUB_COMMIT_SHA::7}>." \
           --arg details "See workflow run: <$GITHUB_RUN_URL|here>" \
           '{text: "\($text)\n\($details)"}')
-          echo "PAYLOAD=$PAYLOAD"
-          echo "SLACK_WEBHOOK_URL=$SLACK_WEBHOOK_URL"
           curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$SLACK_WEBHOOK_URL"
