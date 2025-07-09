@@ -12,6 +12,7 @@ env:
   GITHUB_COMMIT_SHA: ${{ github.sha }}
   GITHUB_COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
   EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+  FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 jobs:
   deploy-android:
     name: "Deploy to Android"
@@ -59,6 +60,8 @@ jobs:
           echo "GITHUB_RUN_URL=$GITHUB_RUN_URL" >> $GITHUB_ENV
           echo "GITHUB_COMMIT_SHA=$GITHUB_COMMIT_SHA" >> $GITHUB_ENV
           echo "GITHUB_COMMIT_URL=$GITHUB_COMMIT_URL" >> $GITHUB_ENV
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
       - name: Notify Slack of build status
         env:
           TESTERS: ${{ vars.TESTERS }}
