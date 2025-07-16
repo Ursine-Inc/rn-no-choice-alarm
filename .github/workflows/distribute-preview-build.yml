@@ -13,6 +13,9 @@ env:
   GITHUB_COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
   EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
   FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+  TESTERS: ${{ vars.TESTERS }}
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
 jobs:
   deploy-android:
     name: "Deploy to Android"
@@ -35,16 +38,12 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y jq
       - name: Confirm EAS login
         run: pnpm eas whoami
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       - name: Trigger EAS Android build
         id: eas-build-android
         run: |
           pnpm eas build --platform android --profile preview --non-interactive --json > build-result-android.json
           BUILD_URL=$(jq -r '.[0].artifacts.buildUrl' < build-result-android.json)
           echo "BUILD_URL=$BUILD_URL" >> $GITHUB_ENV
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       - name: Download APK
         run: |
           BUILD_FILE_NAME="app-preview-$(date +'%Y%m%d_%H%M').apk"
@@ -60,12 +59,7 @@ jobs:
           echo "GITHUB_RUN_URL=$GITHUB_RUN_URL" >> $GITHUB_ENV
           echo "GITHUB_COMMIT_SHA=$GITHUB_COMMIT_SHA" >> $GITHUB_ENV
           echo "GITHUB_COMMIT_URL=$GITHUB_COMMIT_URL" >> $GITHUB_ENV
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
       - name: Notify Slack of build status
-        env:
-          TESTERS: ${{ vars.TESTERS }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
           if [ "${{ job.status }}" == "success" ]; then
           STATUS_EMOJI=":white_check_mark:"
