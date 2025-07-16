@@ -27,7 +27,50 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    gap: 20,
+  },
+  alarmInput: {
+    fontSize: 25,
+    color: "#ccf",
+  },
+  options: {
+    flex: 1,
+    marginTop: 0,
+    marginBottom: 0,
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 10,
+  },
+  addButton: {
+    padding: 5,
+    color: "pink",
+    width: 50,
+    height: 50,
+    inset: 0,
+  },
+  addButtonLabel: {
+    fontSize: 38,
+    fontWeight: "800",
+    verticalAlign: "middle",
+    textAlign: "center",
+    top: 3.5,
+  },
+  optionsButton: {
+    backgroundColor: "#C9EFDD",
+    borderColor: "green",
+    borderWidth: 1,
+    padding: 10,
+    width: "120%",
+    height: "auto",
+  },
+  label: {
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  wrapperCustom: {
+    borderRadius: 8,
+    padding: 6,
   },
 });
 
