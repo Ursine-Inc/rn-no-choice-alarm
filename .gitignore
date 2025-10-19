@@ -43,3 +43,5 @@ builds/
 build*.json
 *.apk
 scratch/
+
+*.ogg
