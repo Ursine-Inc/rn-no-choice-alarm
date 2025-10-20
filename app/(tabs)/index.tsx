@@ -45,7 +45,6 @@ export default function HomeScreen() {
     "Sunday",
   ];
 
-  // Cleanup sound on unmount
   useEffect(() => {
     return () => {
       if (sound) {
@@ -54,9 +53,8 @@ export default function HomeScreen() {
     };
   }, [sound]);
 
-  const playPreview = async (fileName: string) => {
+  const playPreview = async (collectionName: string, fileName: string) => {
     try {
-      // Stop current sound if playing
       if (sound) {
         await sound.stopAsync();
         await sound.unloadAsync();
@@ -65,7 +63,6 @@ export default function HomeScreen() {
 
       setPlayingPreview(fileName);
 
-      // Get the audio source from context
       const audioMapping = audioMap.get(fileName);
       if (!audioMapping) {
         console.error("Audio source not found for:", fileName);
@@ -74,16 +71,14 @@ export default function HomeScreen() {
         return;
       }
 
-      // Set audio mode for playback
       await Audio.setAudioModeAsync({
         playsInSilentModeIOS: true,
         staysActiveInBackground: false,
         shouldDuckAndroid: true,
       });
 
-      // Load and play the audio
       const { sound: newSound } = await Audio.Sound.createAsync(
-        audioMapping.source,
+        audioMapping.get(collectionName)?.source,
         { shouldPlay: true },
         (status: any) => {
           // Handle playback status updates
@@ -97,7 +92,6 @@ export default function HomeScreen() {
 
       setSound(newSound);
 
-      // Stop after 15 seconds
       setTimeout(async () => {
         if (newSound) {
           try {
@@ -137,20 +131,16 @@ export default function HomeScreen() {
       selectedAudio,
     });
 
-    // Reset alarm killed state and set active alarm state to show the tab
     setIsAlarmKilled(false);
     setHasActiveAlarm(true);
 
-    // selectedAudio is the full filename, get the clean name from audioMap
-    // audioMap is keyed by clean name, so we need to find it
     const cleanName =
-      Array.from(audioMap.values()).find(
+      Array.from(audioMap.get(collectionName)?.values()).find(
         (mapping) => mapping.fullFileName === selectedAudio
       )?.cleanName || "";
 
     console.log("Passing clean name to active-alarm:", cleanName);
 
-    // Navigate to active alarm screen with parameters
     router.push({
       pathname: "/active-alarm",
       params: {
@@ -283,7 +273,6 @@ export default function HomeScreen() {
               )}
             </View>
 
-            {/* Recurring toggle */}
             <View style={styles.recurringContainer}>
               <ThemedText type="subtitle">Recurring</ThemedText>
               <Switch
@@ -299,7 +288,54 @@ export default function HomeScreen() {
               <Pressable style={styles.optionsButton}>
                 <Text style={styles.label}>Music</Text>
               </Pressable>
-              {/* Speech button with accordion */}
+              {isSpeechExpanded && (
+                <ScrollView style={styles.audioList} nestedScrollEnabled={true}>
+                  {audioFiles.get("SPEECH")?.map((file, index) => {
+                    // Find the clean name for this full filename
+                    const mapping = Array.from(audioMap.values()).find(
+                      (m) => m.fullFileName === file
+                    );
+                    const cleanName = mapping?.cleanName || file;
+
+                    return (
+                      <View
+                        key={index}
+                        style={[
+                          styles.audioItem,
+                          selectedAudio === file && styles.audioItemSelected,
+                        ]}
+                      >
+                        <Pressable
+                          style={styles.audioItemContent}
+                          onPress={() => {
+                            setSelectedAudio(file);
+                            setIsSpeechExpanded(false);
+                          }}
+                        >
+                          <Text
+                            style={[
+                              styles.audioLabel,
+                              selectedAudio === file &&
+                                styles.audioLabelSelected,
+                            ]}
+                          >
+                            {cleanName}
+                          </Text>
+                        </Pressable>
+                        <Pressable
+                          style={styles.previewButton}
+                          onPress={() => playPreview(file)}
+                          disabled={playingPreview === file}
+                        >
+                          <Text style={styles.previewButtonText}>
+                            {playingPreview === file ? "⏸" : "▶️"}
+                          </Text>
+                        </Pressable>
+                      </View>
+                    );
+                  })}
+                </ScrollView>
+              )}{" "}
               <Pressable
                 style={[
                   styles.optionsButton,
@@ -311,7 +347,6 @@ export default function HomeScreen() {
                   Speech {isSpeechExpanded ? "▲" : "▼"}
                 </Text>
               </Pressable>
-              {/* Audio files accordion */}
               {isSpeechExpanded && (
                 <ScrollView style={styles.audioList} nestedScrollEnabled={true}>
                   {audioFiles.map((file, index) => {
@@ -360,7 +395,6 @@ export default function HomeScreen() {
                   })}
                 </ScrollView>
               )}{" "}
-              {/* Save button */}
               <Pressable style={styles.saveButton} onPress={handleSave}>
                 <Text style={styles.saveButtonLabel}>Save Alarm</Text>
               </Pressable>
