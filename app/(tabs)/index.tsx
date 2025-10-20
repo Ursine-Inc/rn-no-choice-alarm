@@ -296,12 +296,9 @@ export default function HomeScreen() {
 
             <View style={styles.options}>
               <ThemedText type="subheading">Select soundtrack</ThemedText>
-              {/* Hidden Music button - keeping code for later */}
-              {false && (
-                <Pressable style={styles.optionsButton}>
-                  <Text style={styles.label}>Music</Text>
-                </Pressable>
-              )}
+              <Pressable style={styles.optionsButton}>
+                <Text style={styles.label}>Music</Text>
+              </Pressable>
               {/* Speech button with accordion */}
               <Pressable
                 style={[
