@@ -87,6 +87,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#81b0ff",
     borderColor: "#4169e1",
   },
+  optionsButtonSelectedMusic: {
+    backgroundColor: "#FFD54F", // amber for music
+    borderColor: "#FF9800",
+  },
+  optionsButtonSelectedSpeech: {
+    backgroundColor: "#90CAF9", // light blue for speech
+    borderColor: "#1976D2",
+  },
   label: {
     fontWeight: "bold",
     textAlign: "center",
@@ -230,6 +238,30 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 18,
     textAlign: "center",
+  },
+  selectedBadgeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 4,
+  },
+  selectedBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    minHeight: 24,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  selectedBadgeMusic: {
+    backgroundColor: "#FFD54F",
+  },
+  selectedBadgeSpeech: {
+    backgroundColor: "#90CAF9",
+  },
+  selectedBadgeText: {
+    fontWeight: "700",
+    color: "#111",
   },
 });
 
