@@ -23,15 +23,22 @@ import styles from "../index-styles";
 
 export default function HomeScreen() {
   const touch = Gesture.Tap();
-  const { setHasActiveAlarm, setIsAlarmKilled, audioFiles, audioMap } =
-    useActiveAlarm();
+  const {
+    setHasActiveAlarm,
+    setIsAlarmKilled,
+    audioMap,
+    audioCollections,
+    getAudioSource,
+    getAudioCollection,
+  } = useActiveAlarm();
   const [hour, setHour] = useState("");
   const [minutes, setMinutes] = useState("");
   const [day, setDay] = useState("Monday");
   const [isRecurring, setIsRecurring] = useState(false);
   const [isSpeechExpanded, setIsSpeechExpanded] = useState(false);
-  const [selectedAudio, setSelectedAudio] = useState(""); // Stores full filename
-  const [playingPreview, setPlayingPreview] = useState<string | null>(null);
+  const [isMusicExpanded, setIsMusicExpanded] = useState(false);
+  const [selectedAudio, setSelectedAudio] = useState(""); // Stores cleanName
+  const [playingPreview, setPlayingPreview] = useState<string | null>(null); // stores cleanName
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [showDayPicker, setShowDayPicker] = useState(false);
 
@@ -45,7 +52,12 @@ export default function HomeScreen() {
     "Sunday",
   ];
 
-  // Cleanup sound on unmount
+  const selectedCollection = selectedAudio
+    ? getAudioCollection(selectedAudio)
+    : null;
+  const selectedBelongsToMusic = selectedCollection === "MUSIC";
+  const selectedBelongsToSpeech = selectedCollection === "SPEECH";
+
   useEffect(() => {
     return () => {
       if (sound) {
@@ -54,36 +66,31 @@ export default function HomeScreen() {
     };
   }, [sound]);
 
-  const playPreview = async (fileName: string) => {
+  const playPreview = async (cleanName: string) => {
     try {
-      // Stop current sound if playing
       if (sound) {
         await sound.stopAsync();
         await sound.unloadAsync();
         setSound(null);
       }
 
-      setPlayingPreview(fileName);
+      setPlayingPreview(cleanName);
 
-      // Get the audio source from context
-      const audioMapping = audioMap.get(fileName);
-      if (!audioMapping) {
-        console.error("Audio source not found for:", fileName);
+      const audioSource = getAudioSource(cleanName);
+      if (!audioSource) {
+        console.error("Audio source not found for:", cleanName);
         alert("Audio file not found");
         setPlayingPreview(null);
         return;
       }
 
-      // Set audio mode for playback
       await Audio.setAudioModeAsync({
         playsInSilentModeIOS: true,
         staysActiveInBackground: false,
         shouldDuckAndroid: true,
       });
-
-      // Load and play the audio
       const { sound: newSound } = await Audio.Sound.createAsync(
-        audioMapping.source,
+        audioSource,
         { shouldPlay: true },
         (status: any) => {
           // Handle playback status updates
@@ -97,7 +104,6 @@ export default function HomeScreen() {
 
       setSound(newSound);
 
-      // Stop after 15 seconds
       setTimeout(async () => {
         if (newSound) {
           try {
@@ -129,28 +135,15 @@ export default function HomeScreen() {
       return;
     }
 
-    console.log("Saving alarm:", {
-      hour,
-      minutes,
-      day,
-      isRecurring,
-      selectedAudio,
-    });
-
-    // Reset alarm killed state and set active alarm state to show the tab
     setIsAlarmKilled(false);
     setHasActiveAlarm(true);
 
-    // selectedAudio is the full filename, get the clean name from audioMap
-    // audioMap is keyed by clean name, so we need to find it
-    const cleanName =
-      Array.from(audioMap.values()).find(
-        (mapping) => mapping.fullFileName === selectedAudio
-      )?.cleanName || "";
+    const cleanName = selectedAudio;
+    if (!audioMap.get(cleanName)) {
+      alert("Selected audio not found");
+      return;
+    }
 
-    console.log("Passing clean name to active-alarm:", cleanName);
-
-    // Navigate to active alarm screen with parameters
     router.push({
       pathname: "/active-alarm",
       params: {
@@ -197,25 +190,7 @@ export default function HomeScreen() {
                 onChangeText={setMinutes}
                 maxLength={2}
               />
-              {/* Hidden + button - keeping code for later */}
-              {false && (
-                <Pressable
-                  style={({ pressed }) => [
-                    {
-                      backgroundColor: pressed ? "rgb(169, 236, 169)" : "white",
-                    },
-                    styles.wrapperCustom,
-                    styles.addButton,
-                  ]}
-                >
-                  <ThemedText type="link" style={styles.addButtonLabel}>
-                    +
-                  </ThemedText>
-                </Pressable>
-              )}
             </View>
-
-            {/* Day dropdown */}
             <View style={styles.dayContainer}>
               <ThemedText type="subtitle">Day</ThemedText>
               {Platform.OS === "ios" ? (
@@ -283,7 +258,6 @@ export default function HomeScreen() {
               )}
             </View>
 
-            {/* Recurring toggle */}
             <View style={styles.recurringContainer}>
               <ThemedText type="subtitle">Recurring</ThemedText>
               <Switch
@@ -296,53 +270,152 @@ export default function HomeScreen() {
 
             <View style={styles.options}>
               <ThemedText type="subheading">Select soundtrack</ThemedText>
-              {/* Hidden Music button - keeping code for later */}
-              {false && (
-                <Pressable style={styles.optionsButton}>
-                  <Text style={styles.label}>Music</Text>
-                </Pressable>
-              )}
-              {/* Speech button with accordion */}
-              <Pressable
-                style={[
-                  styles.optionsButton,
-                  selectedAudio && styles.optionsButtonSelected,
-                ]}
-                onPress={() => setIsSpeechExpanded(!isSpeechExpanded)}
-              >
-                <Text style={styles.label}>
-                  Speech {isSpeechExpanded ? "▲" : "▼"}
-                </Text>
-              </Pressable>
-              {/* Audio files accordion */}
+              {selectedAudio ? (
+                <View style={styles.selectedBadgeRow}>
+                  <View
+                    style={[
+                      styles.selectedBadge,
+                      selectedBelongsToMusic && styles.selectedBadgeMusic,
+                      selectedBelongsToSpeech && styles.selectedBadgeSpeech,
+                    ]}
+                  >
+                    <Text style={styles.selectedBadgeText}>
+                      {selectedBelongsToMusic
+                        ? "Music"
+                        : selectedBelongsToSpeech
+                        ? "Speech"
+                        : "Other"}
+                    </Text>
+                  </View>
+                  <Text style={styles.audioLabel}>{selectedAudio}</Text>
+                </View>
+              ) : null}
+              {(() => {
+                const selectedBelongsToMusic = selectedAudio
+                  ? audioCollections.get("MUSIC")?.has(selectedAudio) ?? false
+                  : false;
+                const selectedBelongsToSpeech = selectedAudio
+                  ? audioCollections.get("SPEECH")?.has(selectedAudio) ?? false
+                  : false;
+
+                return (
+                  <>
+                    <Pressable
+                      style={[
+                        styles.optionsButton,
+                        isMusicExpanded && styles.optionsButtonSelectedMusic,
+                        selectedBelongsToMusic &&
+                          styles.optionsButtonSelectedMusic,
+                      ]}
+                      onPress={() => setIsMusicExpanded(!isMusicExpanded)}
+                    >
+                      <Text style={styles.label}>
+                        Music {isMusicExpanded ? "▲" : "▼"}
+                      </Text>
+                    </Pressable>
+                    {isMusicExpanded && (
+                      <ScrollView
+                        style={styles.audioList}
+                        nestedScrollEnabled={true}
+                      >
+                        {Array.from(
+                          audioCollections.get("MUSIC")?.values() ?? []
+                        ).map((mapping) => {
+                          const cleanName =
+                            mapping &&
+                            typeof mapping === "object" &&
+                            "cleanName" in mapping
+                              ? // @ts-ignore
+                                mapping.cleanName
+                              : String(mapping);
+
+                          return (
+                            <View
+                              key={cleanName}
+                              style={[
+                                styles.audioItem,
+                                selectedAudio === cleanName &&
+                                  styles.audioItemSelected,
+                              ]}
+                            >
+                              <Pressable
+                                style={styles.audioItemContent}
+                                onPress={() => {
+                                  setSelectedAudio(cleanName);
+                                  setIsMusicExpanded(false);
+                                }}
+                              >
+                                <Text
+                                  style={[
+                                    styles.audioLabel,
+                                    selectedAudio === cleanName &&
+                                      styles.audioLabelSelected,
+                                  ]}
+                                >
+                                  {cleanName}
+                                </Text>
+                              </Pressable>
+                              <Pressable
+                                style={styles.previewButton}
+                                onPress={() => playPreview(cleanName)}
+                                disabled={playingPreview === cleanName}
+                              >
+                                <Text style={styles.previewButtonText}>
+                                  {playingPreview === cleanName ? "⏸" : "▶️"}
+                                </Text>
+                              </Pressable>
+                            </View>
+                          );
+                        })}
+                      </ScrollView>
+                    )}
+
+                    <Pressable
+                      style={[
+                        styles.optionsButton,
+                        selectedBelongsToSpeech &&
+                          styles.optionsButtonSelectedSpeech,
+                      ]}
+                      onPress={() => setIsSpeechExpanded(!isSpeechExpanded)}
+                    >
+                      <Text style={styles.label}>
+                        Speech {isSpeechExpanded ? "▲" : "▼"}
+                      </Text>
+                    </Pressable>
+                  </>
+                );
+              })()}
               {isSpeechExpanded && (
                 <ScrollView style={styles.audioList} nestedScrollEnabled={true}>
-                  {audioFiles.map((file, index) => {
-                    // Find the clean name for this full filename
-                    const mapping = Array.from(audioMap.values()).find(
-                      (m) => m.fullFileName === file
-                    );
-                    const cleanName = mapping?.cleanName || file;
+                  {Array.from(audioMap.values()).map((mapping) => {
+                    const cleanName =
+                      mapping &&
+                      typeof mapping === "object" &&
+                      "cleanName" in mapping
+                        ? // @ts-ignore
+                          mapping.cleanName
+                        : String(mapping);
 
                     return (
                       <View
-                        key={index}
+                        key={cleanName}
                         style={[
                           styles.audioItem,
-                          selectedAudio === file && styles.audioItemSelected,
+                          selectedAudio === cleanName &&
+                            styles.audioItemSelected,
                         ]}
                       >
                         <Pressable
                           style={styles.audioItemContent}
                           onPress={() => {
-                            setSelectedAudio(file);
+                            setSelectedAudio(cleanName);
                             setIsSpeechExpanded(false);
                           }}
                         >
                           <Text
                             style={[
                               styles.audioLabel,
-                              selectedAudio === file &&
+                              selectedAudio === cleanName &&
                                 styles.audioLabelSelected,
                             ]}
                           >
@@ -351,11 +424,11 @@ export default function HomeScreen() {
                         </Pressable>
                         <Pressable
                           style={styles.previewButton}
-                          onPress={() => playPreview(file)}
-                          disabled={playingPreview === file}
+                          onPress={() => playPreview(cleanName)}
+                          disabled={playingPreview === cleanName}
                         >
                           <Text style={styles.previewButtonText}>
-                            {playingPreview === file ? "⏸" : "▶️"}
+                            {playingPreview === cleanName ? "⏸" : "▶️"}
                           </Text>
                         </Pressable>
                       </View>
@@ -363,7 +436,6 @@ export default function HomeScreen() {
                   })}
                 </ScrollView>
               )}{" "}
-              {/* Save button */}
               <Pressable style={styles.saveButton} onPress={handleSave}>
                 <Text style={styles.saveButtonLabel}>Save Alarm</Text>
               </Pressable>
