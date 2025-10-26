@@ -29,8 +29,9 @@ runs:
           STATUS_EMOJI=":x:"
           STATUS_TEXT="Build failed"
         fi
+        SHORT_SHA=$(echo "${{ inputs.commit-sha }}" | cut -c1-7)
         PAYLOAD=$(jq -n \
-          --arg text "$STATUS_EMOJI $STATUS_TEXT for commit <${{ inputs.commit-url }}|${{ inputs.commit-sha }}::7>." \
+          --arg text "$STATUS_EMOJI $STATUS_TEXT for commit <${{ inputs.commit-url }}|$SHORT_SHA>." \
           --arg details "See workflow run: <${{ inputs.run-url }}|here>" \
           '{text: "\($text)\n\($details)"}')
         curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "${{ inputs.webhook-url }}"
