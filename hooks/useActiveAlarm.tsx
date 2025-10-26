@@ -1,27 +1,38 @@
 import { createContext, ReactNode, useContext, useMemo, useState } from "react";
 
-// Audio source mapping - single source of truth
-const AUDIO_SOURCES = {
-  "alarm1getyoass - Output - Stereo Out.m4a": require("../assets/audio/alarm1getyoass - Output - Stereo Out.m4a"),
-  "alarm2personalssitant - Output - Stereo Out.m4a": require("../assets/audio/alarm2personalssitant - Output - Stereo Out.m4a"),
-  "alarm3deathtoeverything - Output - Stereo Out.m4a": require("../assets/audio/alarm3deathtoeverything - Output - Stereo Out.m4a"),
-  "alarm4gilbert - Output - Stereo Out.m4a": require("../assets/audio/alarm4gilbert - Output - Stereo Out.m4a"),
-  "alarm5pete - Output - Stereo Out.m4a": require("../assets/audio/alarm5pete - Output - Stereo Out.m4a"),
-  "alarm6zizek - Output - Stereo Out.m4a": require("../assets/audio/alarm6zizek - Output - Stereo Out.m4a"),
-  "alarm7recovery - Output - Stereo Out.m4a": require("../assets/audio/alarm7recovery - Output - Stereo Out.m4a"),
+const MUSIC_AUDIO_SOURCES = {
+  "alarm1getyoass - Output - Stereo Out.m4a": require("../assets/audio/music/alarm1getyoass - Output - Stereo Out.m4a"),
+  "alarm2personalssitant - Output - Stereo Out.m4a": require("../assets/audio/music/alarm2personalssitant - Output - Stereo Out.m4a"),
+  "alarm3deathtoeverything - Output - Stereo Out.m4a": require("../assets/audio/music/alarm3deathtoeverything - Output - Stereo Out.m4a"),
+  "alarm4gilbert - Output - Stereo Out.m4a": require("../assets/audio/music/alarm4gilbert - Output - Stereo Out.m4a"),
+  "alarm5pete - Output - Stereo Out.m4a": require("../assets/audio/music/alarm5pete - Output - Stereo Out.m4a"),
+  "alarm6zizek - Output - Stereo Out.m4a": require("../assets/audio/music/alarm6zizek - Output - Stereo Out.m4a"),
+  "alarm7recovery - Output - Stereo Out.m4a": require("../assets/audio/music/alarm7recovery - Output - Stereo Out.m4a"),
 } as const;
 
-type AudioFileName = keyof typeof AUDIO_SOURCES;
+const SPEECH_AUDIO_SOURCES = {
+  "BIG BOOK ESQE - Output - Stereo Out.aac": require("../assets/audio/speech/BIG BOOK ESQE - Output - Stereo Out.aac"),
+  "DEATH TO ALL - Output - Stereo Out.aac": require("../assets/audio/speech/DEATH TO ALL - Output - Stereo Out.aac"),
+  "JIVES THE BRITISH BUTLER - Output - Stereo Out.aac": require("../assets/audio/speech/JIVES THE BRITISH BUTLER - Output - Stereo Out.aac"),
+  "NOT SO SENSITIVE COACH - Output - Stereo Out.aac": require("../assets/audio/speech/NOT SO SENSITIVE COACH - Output - Stereo Out.aac"),
+  "SERENITY AND THIRD STEP - Output - Stereo Out.aac": require("../assets/audio/speech/SSERENITY AND THIRD STEP - Output - Stereo Out.aac"),
+  "THIS IS NOT GILBERT - Output - Stereo Out.aac": require("../assets/audio/speech/THIS IS NOT GILBERT - Output - Stereo Out.aac"),
+  "THIS IS NOT PETE - Output - Stereo Out.aac": require("../assets/audio/speech/THIS IS NOT PETE - Output - Stereo Out.aac"),
+  "THIS IS NOT ZIZEK - Output - Stereo Out.aac": require("../assets/audio/speech/THIS IS NOT ZIZEK - Output - Stereo Out.aac"),
+} as const;
 
-// Function to clean up audio file names for display
+type AudioFileName =
+  | keyof typeof MUSIC_AUDIO_SOURCES
+  | keyof typeof SPEECH_AUDIO_SOURCES;
+
 const cleanFileName = (fileName: string): string => {
-  // Remove the file extension
-  let cleaned = fileName.replace(" - Output - Stereo Out.m4a", "");
-  // Remove "alarm" followed by a number at the beginning
+  const regex = new RegExp(" - Output - Stereo Out\\.(m4a|aac)$");
+  let cleaned = fileName.replace(regex, "");
+
   cleaned = cleaned.replace(/^alarm\d+/i, "");
-  // Remove everything from the first hyphen onwards
+
   cleaned = cleaned.split("-")[0].trim();
-  // Convert to sentence case (first letter uppercase, rest lowercase)
+
   cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1).toLowerCase();
   return cleaned;
 };
@@ -32,6 +43,7 @@ interface AudioMapping {
   source: any;
 }
 
+type AudioMapType = Map<string, AudioMapping>;
 interface ActiveAlarmContextType {
   hasActiveAlarm: boolean;
   setHasActiveAlarm: (hasAlarm: boolean) => void;
@@ -39,8 +51,10 @@ interface ActiveAlarmContextType {
   setIsAlarmKilled: (killed: boolean) => void;
   killAlarm: () => void;
   audioFiles: AudioFileName[];
-  audioMap: Map<string, AudioMapping>;
+  audioMap: AudioMapType;
+  audioCollections: Map<string, Map<string, AudioMapping>>;
   getAudioSource: (cleanName: string) => any | null;
+  getAudioCollection: (cleanName: string) => string | null;
 }
 
 const ActiveAlarmContext = createContext<ActiveAlarmContextType | undefined>(
@@ -51,34 +65,63 @@ export function ActiveAlarmProvider({ children }: { children: ReactNode }) {
   const [hasActiveAlarm, setHasActiveAlarm] = useState(false);
   const [isAlarmKilled, setIsAlarmKilled] = useState(false);
 
-  // Create audio mapping on mount
-  const audioMap = useMemo(() => {
-    const map = new Map<string, AudioMapping>();
+  const { combinedMap, collectionsMap } = useMemo(() => {
+    const combined = new Map<string, AudioMapping>();
 
-    (Object.keys(AUDIO_SOURCES) as AudioFileName[]).forEach((fileName) => {
+    const speechMap = new Map<string, AudioMapping>();
+    const musicMap = new Map<string, AudioMapping>();
+
+    (
+      Object.keys(SPEECH_AUDIO_SOURCES) as (keyof typeof SPEECH_AUDIO_SOURCES)[]
+    ).forEach((fileName) => {
       const cleanName = cleanFileName(fileName);
-      map.set(cleanName, {
+      const mapping: AudioMapping = {
         fullFileName: fileName,
         cleanName,
-        source: AUDIO_SOURCES[fileName],
-      });
+        source: SPEECH_AUDIO_SOURCES[fileName],
+      };
+      combined.set(cleanName, mapping);
+      speechMap.set(cleanName, mapping);
     });
 
-    console.log("Audio map created:", Array.from(map.keys()));
-    return map;
+    (
+      Object.keys(MUSIC_AUDIO_SOURCES) as (keyof typeof MUSIC_AUDIO_SOURCES)[]
+    ).forEach((fileName) => {
+      const cleanName = cleanFileName(fileName);
+      const mapping: AudioMapping = {
+        fullFileName: fileName,
+        cleanName,
+        source: MUSIC_AUDIO_SOURCES[fileName],
+      };
+      combined.set(cleanName, mapping);
+      musicMap.set(cleanName, mapping);
+    });
+
+    const collections = new Map<string, Map<string, AudioMapping>>([
+      ["SPEECH", speechMap],
+      ["MUSIC", musicMap],
+    ]);
+
+    return { combinedMap: combined, collectionsMap: collections };
   }, []);
 
   const getAudioSource = (cleanName: string) => {
-    const mapping = audioMap.get(cleanName);
+    const mapping = (combinedMap as Map<string, AudioMapping>).get(cleanName);
     if (mapping) {
       console.log(
-        `Found audio source for "${cleanName}":`,
+        'Found audio source for "' + cleanName + '":',
         mapping.fullFileName
       );
       return mapping.source;
     }
-    console.error(`No audio source found for clean name: "${cleanName}"`);
-    console.log("Available clean names:", Array.from(audioMap.keys()));
+    console.error('No audio source found for clean name: "' + cleanName + '"');
+    return null;
+  };
+
+  const getAudioCollection = (cleanName: string) => {
+    for (const [collectionName, map] of collectionsMap.entries()) {
+      if (map.has(cleanName)) return collectionName;
+    }
     return null;
   };
 
@@ -94,9 +137,13 @@ export function ActiveAlarmProvider({ children }: { children: ReactNode }) {
         isAlarmKilled,
         setIsAlarmKilled,
         killAlarm,
-        audioFiles: Object.keys(AUDIO_SOURCES) as AudioFileName[],
-        audioMap,
+        audioFiles: Array.from(
+          (combinedMap as Map<string, AudioMapping>).values()
+        ).map((m) => m.fullFileName) as AudioFileName[],
+        audioMap: combinedMap,
+        audioCollections: collectionsMap,
         getAudioSource,
+        getAudioCollection,
       }}
     >
       {children}
