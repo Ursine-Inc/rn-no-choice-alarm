@@ -124,14 +124,14 @@ jobs:
           echo "ProjectId: ${projectId:+(redacted)}"
           echo "easProjectSlug: $easProjectSlug"
 
-          status=false
+          validation_failed=false
 
           if [[ $easProjectSlug != "$appSlug" ]]; then
             echo "${appSlug} (expo.slug) does not match ${easProjectSlug} (expo.extra.eas.slug) in app.json"
-            status=true
+            validation_failed=true
           fi
 
-          if [ "$status" = true ]; then
+          if [ "$validation_failed" = true ]; then
             echo "Project naming / EAS projectId validation failed"
             exit 1
           fi
