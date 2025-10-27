@@ -37,7 +37,7 @@ jobs:
                   HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name || '' }}
                   BASE_REPO: ${{ github.repository }}
                   APPLE_ID: ${{ secrets.APPLE_ID }}
-                  APPLE_APP_ID: ${{ secrets.APPLE_ID }}
+                  APPLE_APP_ID: ${{ secrets.APPLE_APP_ID }}
                   ASC_APP_ID: ${{ secrets.ASC_APP_ID }}
                   APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
               run: |
