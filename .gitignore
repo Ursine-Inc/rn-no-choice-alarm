@@ -46,3 +46,5 @@ build*.json
 scratch/
 
 *.ogg
+
+android/
