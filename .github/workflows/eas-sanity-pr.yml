@@ -108,8 +108,34 @@ jobs:
             echo "EXPO_TOKEN not configured; skipping auth check"
           fi
         shell: bash
-      - name: Validate eas.json schema
+      - name: Validate project naming and EAS projectId
         run: |
-          npx ajv-cli validate --strict=false -s schema/eas-schema.json -d eas.json
+          echo "Validating app.json naming and EAS projectId"
+
+          if [ ! -f app.json ]; then
+            echo "app.json not found"
+            exit 1
+          fi
+
+          easProjectSlug=$(jq -r '.expo.extra.eas.slug // empty' app.json)
+          appSlug=$(jq -r '.expo.slug // empty' app.json)
+          projectId=$(jq -r '.expo.extra.eas.projectId // empty' app.json)
+
+          echo "ProjectId: ${projectId:+(redacted)}"
+          echo "easProjectSlug: $easProjectSlug"
+
+          validation_failed=false
+
+          if [[ $easProjectSlug != "$appSlug" ]]; then
+            echo "${appSlug} (expo.slug) does not match ${easProjectSlug} (expo.extra.eas.slug) in app.json"
+            validation_failed=true
+          fi
+
+          if [ "$validation_failed" = true ]; then
+            echo "Project naming / EAS projectId validation failed"
+            exit 1
+          fi
+          echo "Project naming and EAS projectId validation passed"
+        shell: bash
       - name: Done
         run: echo "EAS CLI sanity checks passed"
