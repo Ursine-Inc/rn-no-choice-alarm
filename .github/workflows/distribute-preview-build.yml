@@ -15,6 +15,9 @@ env:
   FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
   TESTERS: ${{ vars.TESTERS }}
   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+  ASC_APP_ID: ${{ secrets.ASC_APP_ID }}
+  APPLE_ID: ${{ secrets.APPLE_ID }}
+  APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
 jobs:
   deploy-android:
@@ -33,4 +36,4 @@ jobs:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
       APPLE_ID: ${{ secrets.APPLE_ID }}
       APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-      APPLE_APP_ID: ${{ secrets.ASC_APP_ID }}
+      ASC_APP_ID: ${{ secrets.ASC_APP_ID }}

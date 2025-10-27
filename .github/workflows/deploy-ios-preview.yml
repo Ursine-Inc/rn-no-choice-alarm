@@ -11,7 +11,7 @@ on:
                 required: true
             APPLE_TEAM_ID:
                 required: true
-            APPLE_APP_ID:
+            ASC_APP_ID:
                 required: true
 
 jobs:
@@ -41,6 +41,9 @@ jobs:
                   pnpm eas submit --platform ios --profile preview --non-interactive
               env:
                   EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+                  APPLE_ID: ${{ secrets.APPLE_ID }}
+                  APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+                  ASC_APP_ID: ${{ secrets.ASC_APP_ID }}
             - name: Notify Slack of build status
               uses: ./.github/actions/notify-slack
               with:
