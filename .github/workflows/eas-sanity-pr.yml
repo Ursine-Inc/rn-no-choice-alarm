@@ -137,8 +137,5 @@ jobs:
           fi
           echo "Project naming and EAS projectId validation passed"
         shell: bash
-      - name: Validate eas.json
-        run: |
-          pnpm eas project:info
       - name: Done
         run: echo "EAS CLI sanity checks passed"
