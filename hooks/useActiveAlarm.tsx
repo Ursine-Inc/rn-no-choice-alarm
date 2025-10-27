@@ -8,6 +8,9 @@ const MUSIC_AUDIO_SOURCES = {
   "alarm5pete - Output - Stereo Out.m4a": require("../assets/audio/music/alarm5pete - Output - Stereo Out.m4a"),
   "alarm6zizek - Output - Stereo Out.m4a": require("../assets/audio/music/alarm6zizek - Output - Stereo Out.m4a"),
   "alarm7recovery - Output - Stereo Out.m4a": require("../assets/audio/music/alarm7recovery - Output - Stereo Out.m4a"),
+  "Easy Rock Morning - Output - Stereo Out.aac": require("../assets/audio/music/Easy Rock Morning - Output - Stereo Out.aac"),
+  "Hayden in the morning - Output - Stereo Out.aac": require("../assets/audio/music/Hayden in the morning - Output - Stereo Out.aac"),
+  "Smithering Smitters Doing a bit - Output - Stereo Out.aac": require("../assets/audio/music/Smithering Smitters Doing a bit - Output - Stereo Out.aac"),
 } as const;
 
 const SPEECH_AUDIO_SOURCES = {
@@ -19,6 +22,12 @@ const SPEECH_AUDIO_SOURCES = {
   "THIS IS NOT GILBERT - Output - Stereo Out.aac": require("../assets/audio/speech/THIS IS NOT GILBERT - Output - Stereo Out.aac"),
   "THIS IS NOT PETE - Output - Stereo Out.aac": require("../assets/audio/speech/THIS IS NOT PETE - Output - Stereo Out.aac"),
   "THIS IS NOT ZIZEK - Output - Stereo Out.aac": require("../assets/audio/speech/THIS IS NOT ZIZEK - Output - Stereo Out.aac"),
+  "Anxieties - Output - Stereo Out.aac": require("../assets/audio/speech/Anxieties - Output - Stereo Out.aac"),
+  "PROJECTIVE IDENTIFICATION - Output - Stereo Out.aac": require("../assets/audio/speech/PROJECTIVE IDENTIFICATION - Output - Stereo Out.aac"),
+  "SENSITIVE COACH - Output - Stereo Out.aac": require("../assets/audio/speech/SENSITIVE COACH - Output - Stereo Out.aac"),
+  "Shulchan Aruch - Output - Stereo Out.aac": require("../assets/audio/speech/Shulchan Aruch - Output - Stereo Out.aac"),
+  "WHATSAP - Output - Stereo Out.aac": require("../assets/audio/speech/WHATSAP - Output - Stereo Out.aac"),
+  "big book strong version - Output - Stereo Out.aac": require("../assets/audio/speech/big book strong version - Output - Stereo Out.aac"),
 } as const;
 
 type AudioFileName =

@@ -1,0 +1,54 @@
+name: Deploy iOS Preview
+
+on:
+    workflow_call:
+        secrets:
+            EXPO_TOKEN:
+                required: true
+            SLACK_WEBHOOK_URL:
+                required: true
+            APPLE_ID:
+                required: true
+            APPLE_TEAM_ID:
+                required: true
+            APPLE_APP_ID:
+                required: true
+
+jobs:
+    deploy-ios:
+        name: "Deploy to iOS"
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+            - name: Set up Node.js and PNPM
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+            - name: Enable and activate pnpm via Corepack
+              run: |
+                  corepack enable
+                  corepack prepare pnpm@8.15.5 --activate
+                  pnpm -v
+            - name: Install dependencies
+              run: pnpm install
+            - name: Confirm EAS login
+              run: pnpm eas whoami
+              env:
+                  EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+            - name: Submit to TestFlight
+              run: |
+                  pnpm eas submit --platform ios --profile preview --non-interactive \
+                    --apple-id "${{ secrets.APPLE_ID }}" \
+                    --asc-app-id "${{ secrets.APPLE_APP_ID }}" \
+                    --apple-team-id "${{ secrets.APPLE_TEAM_ID }}"
+              env:
+                  EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+            - name: Notify Slack of build status
+              uses: ./.github/actions/notify-slack
+              with:
+                  webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+                  status: ${{ job.status }}
+                  commit-sha: ${{ github.sha }}
+                  commit-url: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+                  run-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
