@@ -139,6 +139,6 @@ jobs:
         shell: bash
       - name: Validate eas.json
         run: |
-          npx eas project:info
+          pnpm eas project:info
       - name: Done
         run: echo "EAS CLI sanity checks passed"
