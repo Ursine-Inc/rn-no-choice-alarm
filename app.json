@@ -2,28 +2,34 @@
   "expo": {
     "name": "KooM!",
     "slug": "no-choice-alarm",
-    "version": "1.0.0",
+    "version": "1.0.0-pre-alpha.2",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/generated-icons/playstore-icon-512.png",
     "scheme": "nochoicealarm",
     "userInterfaceStyle": "automatic",
     "ios": {
+      "buildNumber": "2",
+      "icon": "./assets/images/icon.png",
       "supportsTablet": true,
       "bundleIdentifier": "com.ursineenterprises.nochoicealarm"
     },
     "android": {
+      "versionCode": 2,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/generated-icons/android/mipmap-xxxhdpi/ic_launcher.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.ursineenterprises.nochoicealarm",
-      "permissions": ["INTERNET", "WAKE_LOCK"]
+      "permissions": [
+        "INTERNET",
+        "WAKE_LOCK"
+      ]
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/generated-icons/favicons/favicon-32.png"
     },
     "plugins": [
       "expo-router",
