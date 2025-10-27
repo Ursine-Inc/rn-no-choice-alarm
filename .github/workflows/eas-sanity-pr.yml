@@ -1,53 +1,112 @@
 name: EAS Sanity (PR)
 
 on:
-    pull_request:
-        types: [opened, synchronize, reopened]
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 concurrency:
-    group: "eas-sanity-pr-${{ github.head_ref }}"
-    cancel-in-progress: true
+  group: "eas-sanity-pr-${{ github.head_ref }}"
+  cancel-in-progress: true
 
 jobs:
-    sanity:
-        name: Sanity checks for EAS (PR only)
-        runs-on: ubuntu-latest
-        timeout-minutes: 10
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
+  sanity:
+    name: Sanity checks for EAS (PR only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-            - name: Set up Node.js and PNPM
-              uses: actions/setup-node@v4
-              with:
-                  node-version: "20"
+      - name: Set up Node.js and PNPM
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
 
-            - name: Enable and activate pnpm via Corepack
-              run: |
-                  corepack enable
-                  corepack prepare pnpm@8.15.5 --activate
-                  pnpm -v
+      - name: Enable and activate pnpm via Corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@8.15.5 --activate
+          pnpm -v
 
-            - name: Install dependencies
-              run: pnpm install
+      - name: Install dependencies
+        run: pnpm install
 
-            - name: Check that eas.json exists
-              run: |
-                  if [ -f eas.json ]; then
-                    echo "eas.json found"
-                    cat eas.json | jq -e . >/dev/null || true
-                  else
-                    echo "eas.json not found at repo root";
-                    exit 1
-                  fi
-              shell: bash
+      - name: Check that eas.json exists
+        run: |
+          if [ -f eas.json ]; then
+            echo "eas.json found"
+            cat eas.json | jq -e . >/dev/null || true
+          else
+            echo "eas.json not found at repo root";
+            exit 1
+          fi
+        shell: bash
 
-            - name: Verify eas-cli is available
-              run: |
-                  npx --no-install eas-cli --version || npx eas-cli --version
+      - name: Verify eas-cli is available
+        run: |
+          npx --no-install eas-cli --version || npx eas-cli --version
 
-            - name: Verify eas build help prints (sanity check only)
-              run: npx eas-cli build --help
+      - name: Verify eas build help prints (sanity check only)
+        run: npx eas-cli build --help
 
-            - name: Done
-              run: echo "EAS CLI sanity checks passed"
+      - name: Verify Apple secrets are configured (only for non-fork PRs)
+        env:
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name || '' }}
+          BASE_REPO: ${{ github.repository }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_ID: ${{ secrets.APPLE_ID }}
+          ASC_APP_ID: ${{ secrets.ASC_APP_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          # If this PR is from a fork, secrets will not be available to the run.
+          if [ -n "$HEAD_REPO" ] && [ "$HEAD_REPO" != "$BASE_REPO" ]; then
+            echo "PR originates from a fork ($HEAD_REPO); skipping secret presence checks."
+            exit 0
+          fi
+
+          missing=false
+
+          # APP ID may be stored under APPLE_APP_ID or ASC_APP_ID depending on convention.
+          if [ -n "$APPLE_APP_ID" ]; then
+            echo "APPLE_APP_ID is present"
+          elif [ -n "$ASC_APP_ID" ]; then
+            echo "ASC_APP_ID is present"
+          else
+            echo "Missing APP ID secret: neither APPLE_APP_ID nor ASC_APP_ID is configured"
+            missing=true
+          fi
+
+          if [ -z "$APPLE_ID" ]; then
+            echo "Missing APPLE_ID secret"
+            missing=true
+          else
+            echo "APPLE_ID is present"
+          fi
+
+          if [ -z "$APPLE_TEAM_ID" ]; then
+            echo "Missing APPLE_TEAM_ID secret"
+            missing=true
+          else
+            echo "APPLE_TEAM_ID is present"
+          fi
+
+          if [ "$missing" = true ]; then
+            echo "One or more required Apple secrets are missing. Please configure them in repository settings."
+            exit 1
+          fi
+        shell: bash
+      - name: Verify `eas submit` help (sanity check only)
+        run: npx eas-cli submit --help
+      - name: Verify EAS auth if EXPO_TOKEN present
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -n "$EXPO_TOKEN" ]; then
+            echo "EXPO_TOKEN available — verifying auth via 'pnpm eas whoami'"
+            pnpm eas whoami
+          else
+            echo "EXPO_TOKEN not configured; skipping auth check"
+          fi
+        shell: bash
+      - name: Done
+        run: echo "EAS CLI sanity checks passed"
