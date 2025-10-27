@@ -387,7 +387,9 @@ export default function HomeScreen() {
               })()}
               {isSpeechExpanded && (
                 <ScrollView style={styles.audioList} nestedScrollEnabled={true}>
-                  {Array.from(audioMap.values()).map((mapping) => {
+                  {Array.from(
+                    audioCollections.get("SPEECH")?.values() ?? []
+                  ).map((mapping) => {
                     const cleanName =
                       mapping &&
                       typeof mapping === "object" &&
