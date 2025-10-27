@@ -1,0 +1,53 @@
+name: EAS Sanity (PR)
+
+on:
+    pull_request:
+        types: [opened, synchronize, reopened]
+
+concurrency:
+    group: "eas-sanity-pr-${{ github.head_ref }}"
+    cancel-in-progress: true
+
+jobs:
+    sanity:
+        name: Sanity checks for EAS (PR only)
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Set up Node.js and PNPM
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+
+            - name: Enable and activate pnpm via Corepack
+              run: |
+                  corepack enable
+                  corepack prepare pnpm@8.15.5 --activate
+                  pnpm -v
+
+            - name: Install dependencies
+              run: pnpm install
+
+            - name: Check that eas.json exists
+              run: |
+                  if [ -f eas.json ]; then
+                    echo "eas.json found"
+                    cat eas.json | jq -e . >/dev/null || true
+                  else
+                    echo "eas.json not found at repo root";
+                    exit 1
+                  fi
+              shell: bash
+
+            - name: Verify eas-cli is available
+              run: |
+                  npx --no-install eas-cli --version || npx eas-cli --version
+
+            - name: Verify eas build help prints (sanity check only)
+              run: npx eas-cli build --help
+
+            - name: Done
+              run: echo "EAS CLI sanity checks passed"
