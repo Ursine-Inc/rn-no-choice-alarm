@@ -71,7 +71,7 @@ jobs:
                       echo "One or more required Apple secrets are missing. Please configure them in repository settings."
                       exit 1
                   fi
-                  shell: bash
+              shell: bash
             - name: Confirm EAS login
               run: pnpm eas whoami
               env:
