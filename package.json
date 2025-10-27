@@ -1,6 +1,6 @@
 {
   "name": "koom-mobile-app",
-  "slug": "koom-app",
+  "slug": "no-choice-alarm",
   "description": "KooM! - the alarm clock you can't snooze!",
   "main": "expo-router/entry",
   "version": "1.0.0-pre-alpha.2",
