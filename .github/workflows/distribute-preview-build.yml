@@ -18,58 +18,19 @@ env:
 
 jobs:
   deploy-android:
-    name: "Deploy to Android"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Set up Node.js and PNPM
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - name: Enable and activate pnpm via Corepack
-        run: |
-          corepack enable
-          corepack prepare pnpm@8.15.5 --activate
-          pnpm -v
-      - name: Install dependencies
-        run: pnpm install
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
-      - name: Confirm EAS login
-        run: pnpm eas whoami
-      - name: Trigger EAS Android build
-        id: eas-build-android
-        run: |
-          pnpm eas build --platform android --profile preview --non-interactive --json > build-result-android.json
-          BUILD_URL=$(jq -r '.[0].artifacts.buildUrl' < build-result-android.json)
-          echo "BUILD_URL=$BUILD_URL" >> $GITHUB_ENV
-      - name: Download APK
-        run: |
-          BUILD_FILE_NAME="app-preview-$(date +'%Y%m%d_%H%M').apk"
-          echo "Downloaded APK as $BUILD_FILE_NAME"
-          curl -L -o "$BUILD_FILE_NAME" "$BUILD_URL"
-          echo "BUILD_FILE_NAME=$BUILD_FILE_NAME" >> $GITHUB_ENV
-      - name: Upload to Firebase App Distribution
-        run: |
-          pnpm exec firebase appdistribution:distribute "$BUILD_FILE_NAME" \
-            --app "$FIREBASE_APP_ID" \
-            --testers "$TESTERS" \
-            --release-notes "Auto-uploaded build from GitHub Actions on $(date +'%Y-%m-%d %H:%M')"
-          echo "GITHUB_RUN_URL=$GITHUB_RUN_URL" >> $GITHUB_ENV
-          echo "GITHUB_COMMIT_SHA=$GITHUB_COMMIT_SHA" >> $GITHUB_ENV
-          echo "GITHUB_COMMIT_URL=$GITHUB_COMMIT_URL" >> $GITHUB_ENV
-      - name: Notify Slack of build status
-        run: |
-          if [ "${{ job.status }}" == "success" ]; then
-          STATUS_EMOJI=":white_check_mark:"
-          STATUS_TEXT="Build succeeded"
-          else
-          STATUS_EMOJI=":x:"
-          STATUS_TEXT="Build failed"
-          fi
-          PAYLOAD=$(jq -n \
-          --arg text "$STATUS_EMOJI $STATUS_TEXT for commit <$GITHUB_COMMIT_URL|${GITHUB_COMMIT_SHA::7}>." \
-          --arg details "See workflow run: <$GITHUB_RUN_URL|here>" \
-          '{text: "\($text)\n\($details)"}')
-          curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$SLACK_WEBHOOK_URL"
+    uses: ./.github/workflows/deploy-android-preview.yml
+    secrets:
+      FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      TESTERS: ${{ vars.TESTERS }}
+
+  deploy-ios:
+    uses: ./.github/workflows/deploy-ios-preview.yml
+    secrets:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      APPLE_APP_ID: ${{ secrets.ASC_APP_ID }}

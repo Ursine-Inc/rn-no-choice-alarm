@@ -1,7 +1,9 @@
 {
-  "name": "no-choice-alarm",
+  "name": "koom-mobile-app",
+  "slug": "koom-app",
+  "description": "KooM! - the alarm clock you can't snooze!",
   "main": "expo-router/entry",
-  "version": "1.0.0",
+  "version": "1.0.0-pre-alpha.2",
   "scripts": {
     "start": "expo start",
     "start:devclient": "expo start --dev-client",
@@ -62,5 +64,26 @@
     "typescript": "~5.8.3"
   },
   "private": true,
+  "author": "Ursine Inc",
+  "contributors": [
+    {
+      "name": "Mina Demian",
+      "email": "mina@ursine.inc",
+      "url": "https://github.com/minademian"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ursine-Inc/rn-no-choice-alarm.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Ursine-Inc/rn-no-choice-alarm/issues"
+  },
+  "homepage": "https://github.com/Ursine-Inc/rn-no-choice-alarm#readme",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=7.0.0"
+  },
   "packageManager": "pnpm@9.4.0+sha512.f549b8a52c9d2b8536762f99c0722205efc5af913e77835dbccc3b0b0b2ca9e7dc8022b78062c17291c48e88749c70ce88eb5a74f1fa8c4bf5e18bb46c8bd83a"
 }

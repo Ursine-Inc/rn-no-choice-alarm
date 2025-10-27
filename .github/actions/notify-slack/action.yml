@@ -1,0 +1,37 @@
+name: "Notify Slack"
+description: "Send build status notification to Slack"
+inputs:
+  webhook-url:
+    description: "Slack webhook URL"
+    required: true
+  status:
+    description: "Build status (success or failure)"
+    required: true
+  commit-sha:
+    description: "Git commit SHA"
+    required: true
+  commit-url:
+    description: "URL to the commit"
+    required: true
+  run-url:
+    description: "URL to the workflow run"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Send Slack notification
+      shell: bash
+      run: |
+        if [ "${{ inputs.status }}" == "success" ]; then
+          STATUS_EMOJI=":white_check_mark:"
+          STATUS_TEXT="Build succeeded"
+        else
+          STATUS_EMOJI=":x:"
+          STATUS_TEXT="Build failed"
+        fi
+        SHORT_SHA=$(echo "${{ inputs.commit-sha }}" | cut -c1-7)
+        PAYLOAD=$(jq -n \
+          --arg text "$STATUS_EMOJI $STATUS_TEXT for commit <${{ inputs.commit-url }}|$SHORT_SHA>." \
+          --arg details "See workflow run: <${{ inputs.run-url }}|here>" \
+          '{text: "\($text)\n\($details)"}')
+        curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "${{ inputs.webhook-url }}"
