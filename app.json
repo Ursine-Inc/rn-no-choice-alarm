@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "KooM!",
-    "slug": "koom-app",
+    "slug": "no-choice-alarm",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -43,6 +43,7 @@
     "extra": {
       "router": {},
       "eas": {
+        "slug": "no-choice-alarm",
         "projectId": "146fee5c-6c6b-4e0c-bb3e-78a134f01845"
       }
     },
