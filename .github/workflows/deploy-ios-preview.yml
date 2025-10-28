@@ -78,7 +78,7 @@ jobs:
                   EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
             - name: Submit to TestFlight
               run: |
-                  pnpm eas submit --platform ios --profile preview --non-interactive
+                  pnpm eas build --platform ios --non-interactive --no-wait --profile preview --auto-submit
               env:
                   EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
                   APPLE_ID: ${{ secrets.APPLE_ID }}
