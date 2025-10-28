@@ -4,32 +4,27 @@
     "slug": "no-choice-alarm",
     "version": "1.0.0-pre-alpha.2",
     "orientation": "portrait",
-    "icon": "./assets/generated-icons/playstore-icon-512.png",
+    "icon": "./assets/images/icon.png",
     "scheme": "nochoicealarm",
     "userInterfaceStyle": "automatic",
     "ios": {
       "buildNumber": "2",
-      "icon": "./assets/images/icon.png",
       "supportsTablet": true,
       "bundleIdentifier": "com.ursineenterprises.nochoicealarm"
     },
     "android": {
-      "versionCode": 2,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/generated-icons/android/mipmap-xxxhdpi/ic_launcher.png",
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.ursineenterprises.nochoicealarm",
-      "permissions": [
-        "INTERNET",
-        "WAKE_LOCK"
-      ]
+      "permissions": ["INTERNET", "WAKE_LOCK"]
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/generated-icons/favicons/favicon-32.png"
+      "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
       "expo-router",
