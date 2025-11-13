@@ -26,17 +26,7 @@
       "output": "static",
       "favicon": "./assets/images/icon_2025.png"
     },
-    "plugins": [
-      "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/splash-screen_2025.jpg",
-          "imageWidth": 896,
-          "resizeMode": "fill"
-        }
-      ]
-    ],
+    "plugins": ["expo-router"],
     "experiments": {
       "typedRoutes": true
     },
