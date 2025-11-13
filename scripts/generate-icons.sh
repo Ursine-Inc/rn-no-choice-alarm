@@ -34,7 +34,10 @@ fi
 
 mkdir -p "$OUT_DIR"
 
-# Helper to scale and pad to square while preserving aspect ratio
+# Splash screen source image (fullscreen, no padding)
+SPLASH_SRC=${SPLASH_SRC:-assets/images/splash-screen_2025.jpg}
+
+# Helper to scale and pad to square while preserving aspect ratio (for icons)
 # Usage: generate <width> <height> <out_file>
 generate() {
   local w=$1; local h=$2; local out=$3
@@ -49,6 +52,19 @@ generate() {
     if [ $rc -ne 0 ]; then
       echo "Warning: ffmpeg returned non-zero exit code ($rc) while generating $out" >&2
     fi
+}
+
+# Helper to scale splash screens (no padding, just scale to exact dimensions)
+# Usage: generate_splash <width> <height> <out_file>
+generate_splash() {
+  local w=$1; local h=$2; local out=$3
+  set +e
+  ffmpeg -y -i "$SPLASH_SRC" -vf "scale=${w}:${h}" -update 1 -frames:v 1 "$out" > /dev/null
+  rc=$?
+  set -e
+  if [ $rc -ne 0 ]; then
+    echo "Warning: ffmpeg returned non-zero exit code ($rc) while generating splash $out" >&2
+  fi
 }
 
 echo "Generating icons from $SRC into $OUT_DIR"
@@ -67,27 +83,23 @@ generate 192 192 "$ANDROID_OUT/mipmap-xxxhdpi/ic_launcher.png"
 # Play Store high-res icon
 generate 512 512 "$OUT_DIR/playstore-icon-512.png"
 
-# Android splash/logo images (square). These are commonly used
-# as splash assets in drawable-<density>/ directories. We place
-# them under the same "$ANDROID_OUT" tree so the script remains
-# non-destructive by default (user must explicitly write into
-# native folders).
+# Android splash/logo images (fullscreen portrait, no padding)
+# Generated from SPLASH_SRC scaled to portrait dimensions for each density
 SPLASH_OUT="$ANDROID_OUT"
 mkdir -p "$SPLASH_OUT/drawable-mdpi" "$SPLASH_OUT/drawable-hdpi" \
   "$SPLASH_OUT/drawable-xhdpi" "$SPLASH_OUT/drawable-xxhdpi" \
   "$SPLASH_OUT/drawable-xxxhdpi" "$SPLASH_OUT/drawable"
 
-# Sizes chosen to provide good coverage across densities. If you
-# want different sizes, pass a different OUT_DIR or edit this list.
-# mdpi 288, hdpi 432, xhdpi 576, xxhdpi 864, xxxhdpi 1152
-generate 288 288 "$SPLASH_OUT/drawable-mdpi/splashscreen_logo.png"
-generate 432 432 "$SPLASH_OUT/drawable-hdpi/splashscreen_logo.png"
-generate 576 576 "$SPLASH_OUT/drawable-xhdpi/splashscreen_logo.png"
-generate 864 864 "$SPLASH_OUT/drawable-xxhdpi/splashscreen_logo.png"
-generate 1152 1152 "$SPLASH_OUT/drawable-xxxhdpi/splashscreen_logo.png"
+# Portrait dimensions (9:16 aspect ratio) for common screen densities
+# mdpi 320x569, hdpi 480x854, xhdpi 640x1138, xxhdpi 960x1707, xxxhdpi 1280x2276
+generate_splash 320 569 "$SPLASH_OUT/drawable-mdpi/splashscreen_logo.png"
+generate_splash 480 854 "$SPLASH_OUT/drawable-hdpi/splashscreen_logo.png"
+generate_splash 640 1138 "$SPLASH_OUT/drawable-xhdpi/splashscreen_logo.png"
+generate_splash 960 1707 "$SPLASH_OUT/drawable-xxhdpi/splashscreen_logo.png"
+generate_splash 1280 2276 "$SPLASH_OUT/drawable-xxxhdpi/splashscreen_logo.png"
 
 # Also generate a default (unqualified) drawable copy
-generate 576 576 "$SPLASH_OUT/drawable/splashscreen_logo.png"
+generate_splash 640 1138 "$SPLASH_OUT/drawable/splashscreen_logo.png"
 
 # iOS AppIcon.appiconset
 IOS_OUT="$OUT_DIR/ios/AppIcon.appiconset"
