@@ -178,31 +178,3 @@ dependencies {
         implementation jscFlavor
     }
 }
-
-// Task to copy splash screen assets from generated-icons to native res
-tasks.register('copySplashAssets') {
-    doLast {
-        def densities = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi', 'xxxhdpi']
-        def sourceBase = '../../assets/generated-icons/android'
-        def destBase = 'src/main/res'
-        
-        densities.each { density ->
-            def sourceFile = file("${sourceBase}/drawable-${density}/splashscreen_logo.png")
-            def destFile = file("${destBase}/drawable-${density}/splashscreen_logo.png")
-            
-            if (sourceFile.exists()) {
-                destFile.parentFile.mkdirs()
-                copy {
-                    from sourceFile
-                    into destFile.parentFile
-                }
-                println "Copied splash asset for ${density}"
-            } else {
-                println "Warning: Source splash asset not found for ${density}"
-            }
-        }
-    }
-}
-
-// Run copySplashAssets before preBuild
-preBuild.dependsOn copySplashAssets
