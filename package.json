@@ -3,7 +3,9 @@
   "slug": "no-choice-alarm",
   "description": "KooM! - the alarm clock you can't snooze!",
   "main": "expo-router/entry",
-  "version": "1.0.0-pre-alpha.3",
+  "version": "1.0.0",
+  "buildNumber": "2025.11.14.2",
+  "versionCode": 202511142,
   "scripts": {
     "copy-splash-assets": "for density in mdpi hdpi xhdpi xxhdpi xxxhdpi; do cp assets/generated-icons/android/drawable-${density}/splashscreen_logo.png android/app/src/main/res/drawable-${density}/splashscreen_logo.png; done",
     "start": "expo start --reset-cache",

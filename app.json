@@ -8,12 +8,12 @@
     "scheme": "nochoicealarm",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "buildNumber": "2025.11.14.1",
+      "buildNumber": "2025.11.14.2",
       "supportsTablet": true,
       "bundleIdentifier": "com.ursineenterprises.nochoicealarm"
     },
     "android": {
-      "versionCode": 20251114,
+      "versionCode": 202511142,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon_2025.png",
         "backgroundColor": "#ffffff"
