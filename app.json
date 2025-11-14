@@ -2,17 +2,18 @@
   "expo": {
     "name": "KooM!",
     "slug": "no-choice-alarm",
-    "version": "1.0.0-pre-alpha.2",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon_2025.png",
     "scheme": "nochoicealarm",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "buildNumber": "2",
+      "buildNumber": "2025.11.14.1",
       "supportsTablet": true,
       "bundleIdentifier": "com.ursineenterprises.nochoicealarm"
     },
     "android": {
+      "versionCode": 20251114,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon_2025.png",
         "backgroundColor": "#ffffff"
