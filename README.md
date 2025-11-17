@@ -47,3 +47,13 @@ hooks/
 assets/
   audio/               # M4A alarm audio files
 ```
+
+## iOS Version Management
+
+**IMPORTANT:** When updating the iOS build number for TestFlight, you must update ALL THREE files:
+
+1. `app.json` - Set `expo.ios.buildNumber`
+2. `ios/nochoicealarm/Info.plist` - Set `CFBundleVersion`
+3. `ios/nochoicealarm.xcodeproj/project.pbxproj` - Set `CURRENT_PROJECT_VERSION` (appears in both Debug and Release configs)
+
+The Xcode project file (`project.pbxproj`) takes precedence during builds. If you only update `app.json`, EAS will still use the value from `project.pbxproj`.
