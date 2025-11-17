@@ -10,6 +10,8 @@ import "react-native-reanimated";
 import { KillSwitch } from "@/components/KillSwitch";
 import { ActiveAlarmProvider } from "@/hooks/useActiveAlarm";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { useEffect, useRef } from "react";
+import { Animated } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function RootLayout() {
@@ -17,6 +19,16 @@ export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
+
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [fadeAnim]);
 
   if (!loaded) {
     // Async font loading only occurs in development.
