@@ -31,7 +31,9 @@
   "submit": {
     "preview": {
       "android": {},
-      "ios": {}
+      "ios": {
+        "ascAppId": "com.ursineenterprises.nochoicealarm"
+      }
     },
     "production": {
       "android": {},
