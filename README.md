@@ -64,6 +64,14 @@ pnpm expo start --android
 
 ---
 
+## 📄 License
+
+Copyright © 2025 Ursine Enterprises and Tzori Brickner. All rights reserved.
+
+This software is proprietary and confidential. See [LICENSE](LICENSE) for details.
+
+---
+
 <div align="center">
   <sub>Built with ☕ and determination to wake up on time</sub>
 </div>

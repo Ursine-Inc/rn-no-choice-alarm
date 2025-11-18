@@ -71,7 +71,7 @@
   "contributors": [
     {
       "name": "Mina Demian",
-      "email": "mina@ursine.inc",
+      "email": "mina@minademian.com",
       "url": "https://github.com/minademian"
     }
   ],
@@ -83,7 +83,7 @@
     "url": "https://github.com/Ursine-Inc/rn-no-choice-alarm/issues"
   },
   "homepage": "https://github.com/Ursine-Inc/rn-no-choice-alarm#readme",
-  "license": "UNLICENSED",
+  "license": "SEE LICENSE IN LICENSE",
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=7.0.0"
