@@ -1,3 +1,4 @@
+import { KillSwitch } from "@/components/KillSwitch";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -11,14 +12,23 @@ import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 export default function ActiveAlarmScreen() {
   const params = useLocalSearchParams();
   const { hour, minutes, day, isRecurring, selectedAudio } = params;
-  const { setHasActiveAlarm, isAlarmKilled, setIsAlarmKilled, getAudioSource } =
-    useActiveAlarm();
+  const {
+    setHasActiveAlarm,
+    isAlarmKilled,
+    setIsAlarmKilled,
+    getAudioSource,
+    isAlarmCountdownPaused,
+  } = useActiveAlarm();
 
   const [countdown, setCountdown] = useState("");
   const [scaleAnim] = useState(new Animated.Value(0));
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isAlarmSounding, setIsAlarmSounding] = useState(false);
   const alarmTriggeredRef = useRef(false);
+
+  useEffect(() => {
+    setHasActiveAlarm(true);
+  }, [setHasActiveAlarm]);
 
   const playAlarmSound = useCallback(
     async (audioName: string) => {
@@ -101,33 +111,19 @@ export default function ActiveAlarmScreen() {
     }).start();
 
     const calculateCountdown = () => {
+      if (isAlarmCountdownPaused) return;
+
       const now = new Date();
       const alarmTime = new Date();
+
       alarmTime.setHours(parseInt(hour as string) || 0);
       alarmTime.setMinutes(parseInt(minutes as string) || 0);
       alarmTime.setSeconds(0);
 
-      // console.log("Current time:", now.toLocaleTimeString());
-      // console.log("Alarm time (today):", alarmTime.toLocaleTimeString());
-
       const diff = alarmTime.getTime() - now.getTime();
 
-      // console.log("Time diff (ms):", diff);
-      // console.log("Time diff (seconds):", Math.floor(diff / 1000));
-      // console.log("Alarm triggered ref:", alarmTriggeredRef.current);
-
-      // // Check if countdown has reached 0 or passed (trigger alarm!)
-      // console.log("=== TRIGGER CHECK ===");
-      // console.log("diff <= 0:", diff <= 0);
-      // console.log("!isAlarmKilled:", !isAlarmKilled);
-      // console.log("!alarmTriggeredRef.current:", !alarmTriggeredRef.current);
-
       if (diff <= 0 && !isAlarmKilled && !alarmTriggeredRef.current) {
-        // console.log("🔔 🔔 🔔 ALARM TIME! Triggering alarm...");
-        // console.log("Selected audio name:", selectedAudio);
         playAlarmSound(selectedAudio as string);
-      } else if (diff > 0) {
-        // console.log("Alarm not triggered yet - still counting down.");
       }
 
       if (diff <= 0 && diff > -60000) {
@@ -177,7 +173,11 @@ export default function ActiveAlarmScreen() {
           style={styles.headerImage}
         />
       }
+      noPadding
     >
+      <View style={styles.killSwitchWrapper}>
+        <KillSwitch />
+      </View>
       <ThemedView style={styles.container}>
         <Animated.View
           style={[
@@ -188,6 +188,25 @@ export default function ActiveAlarmScreen() {
             },
           ]}
         >
+          <View
+            style={[
+              styles.countdownContainer,
+              isAlarmSounding && styles.countdownContainerActive,
+            ]}
+          >
+            <ThemedText type="subtitle" style={styles.countdownLabel}>
+              {isAlarmSounding ? "Status:" : "Alarm in:"}
+            </ThemedText>
+            <Text
+              style={[
+                styles.countdownTime,
+                isAlarmSounding && styles.countdownTimeActive,
+              ]}
+            >
+              {countdown}
+            </Text>
+          </View>
+
           <ThemedText type="title" style={styles.title}>
             {isAlarmKilled ? "Alarm Killed! 🔴" : "Alarm Set! ✅"}
           </ThemedText>
@@ -231,25 +250,6 @@ export default function ActiveAlarmScreen() {
             )}
           </View>
 
-          <View
-            style={[
-              styles.countdownContainer,
-              isAlarmSounding && styles.countdownContainerActive,
-            ]}
-          >
-            <ThemedText type="subtitle" style={styles.countdownLabel}>
-              {isAlarmSounding ? "Status:" : "Alarm in:"}
-            </ThemedText>
-            <Text
-              style={[
-                styles.countdownTime,
-                isAlarmSounding && styles.countdownTimeActive,
-              ]}
-            >
-              {countdown}
-            </Text>
-          </View>
-
           <View style={styles.buttonContainer}>
             <Pressable style={styles.editButton} onPress={handleEdit}>
               <Text style={styles.editButtonText}>Edit Alarm</Text>
@@ -266,10 +266,12 @@ export default function ActiveAlarmScreen() {
 }
 
 const styles = StyleSheet.create({
+  killSwitchWrapper: {
+    paddingTop: 15,
+  },
   container: {
     flex: 1,
-    padding: 10,
-    marginTop: -40,
+    margin: 0,
   },
   headerImage: {
     backgroundSize: "cover",
@@ -361,7 +363,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   countdownTime: {
-    fontSize: 36,
+    fontSize: 30,
     fontWeight: "bold",
     color: "#2E7D32",
   },

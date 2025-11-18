@@ -59,6 +59,9 @@ interface ActiveAlarmContextType {
   isAlarmKilled: boolean;
   setIsAlarmKilled: (killed: boolean) => void;
   killAlarm: () => void;
+  isAlarmCountdownPaused: boolean;
+  pauseAlarmCountdown: () => void;
+  resumeAlarmCountdown: () => void;
   audioFiles: AudioFileName[];
   audioMap: AudioMapType;
   audioCollections: Map<string, Map<string, AudioMapping>>;
@@ -73,6 +76,7 @@ const ActiveAlarmContext = createContext<ActiveAlarmContextType | undefined>(
 export function ActiveAlarmProvider({ children }: { children: ReactNode }) {
   const [hasActiveAlarm, setHasActiveAlarm] = useState(false);
   const [isAlarmKilled, setIsAlarmKilled] = useState(false);
+  const [isAlarmCountdownPaused, setIsAlarmCountdownPaused] = useState(false);
 
   const { combinedMap, collectionsMap } = useMemo(() => {
     const combined = new Map<string, AudioMapping>();
@@ -138,6 +142,14 @@ export function ActiveAlarmProvider({ children }: { children: ReactNode }) {
     setIsAlarmKilled(true);
   };
 
+  const pauseAlarmCountdown = () => {
+    setIsAlarmCountdownPaused(true);
+  };
+
+  const resumeAlarmCountdown = () => {
+    setIsAlarmCountdownPaused(false);
+  };
+
   return (
     <ActiveAlarmContext.Provider
       value={{
@@ -146,6 +158,9 @@ export function ActiveAlarmProvider({ children }: { children: ReactNode }) {
         isAlarmKilled,
         setIsAlarmKilled,
         killAlarm,
+        isAlarmCountdownPaused,
+        pauseAlarmCountdown,
+        resumeAlarmCountdown,
         audioFiles: Array.from(
           (combinedMap as Map<string, AudioMapping>).values()
         ).map((m) => m.fullFileName) as AudioFileName[],

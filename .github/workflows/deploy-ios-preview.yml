@@ -76,9 +76,14 @@ jobs:
               run: pnpm eas whoami
               env:
                   EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-            - name: Build and Submit to TestFlight
+            - name: Build iOS App
               run: |
-                  pnpm eas build --platform ios --non-interactive --profile preview --auto-submit
+                  pnpm eas build --platform ios --non-interactive --profile preview --wait
+              env:
+                  EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+            - name: Submit to TestFlight
+              run: |
+                  pnpm eas submit --platform ios --profile preview --non-interactive --latest
               env:
                   EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
             - name: Notify Slack of build status
