@@ -19,6 +19,8 @@ import {
   View,
 } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
+
+import { PreviewAnimation } from "@/components/player/preview-animation";
 import styles from "../index-styles";
 
 export default function HomeScreen() {
@@ -132,27 +134,42 @@ export default function HomeScreen() {
 
       setSound(newSound);
 
-      setTimeout(async () => {
-        if (newSound) {
-          try {
-            await newSound.stopAsync();
-            await newSound.unloadAsync();
-            setPlayingPreview(null);
-            setSound(null);
-          } catch {
-            console.log("Sound already stopped");
+      // Update progress every 100ms
+      const startTime = Date.now();
+      const progressInterval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / 11000, 1); // 11 seconds total (10s play + 1s fade)
+        setPreviewProgress(progress);
+      }, 100);
+
+      const timeout = setTimeout(async () => {
+        try {
+          const fadeSteps = 20;
+          const fadeInterval = 1000 / fadeSteps;
+
+          for (let i = fadeSteps; i >= 0; i--) {
+            const volume = i / fadeSteps;
+            await newSound.setVolumeAsync(volume);
+            await new Promise((resolve) => setTimeout(resolve, fadeInterval));
           }
+        } catch (error) {
+          console.log("Error during fadeout:", error);
         }
-      }, 15000);
+
+        clearInterval(progressInterval);
+        await cleanupPreview();
+      }, 10000);
+
+      setPreviewTimeout(timeout);
     } catch (error) {
       console.error("Error playing preview:", error);
       setPlayingPreview(null);
+      setIsPreviewPlaying(false);
       alert(`Error playing audio: ${error}`);
     }
   };
 
   const handleSave = () => {
-    // Validate inputs
     if (!hour || !minutes) {
       alert("Please set hour and minutes!");
       return;
@@ -396,6 +413,21 @@ export default function HomeScreen() {
                                       playPreview(cleanName);
                                     }
                                   }}
+                                >
+                                  <Text style={styles.previewButtonText}>
+                                    {playingPreview === cleanName &&
+                                    isPreviewPlaying
+                                      ? "⏸"
+                                      : "▶️"}
+                                  </Text>
+                                </Pressable>
+                                {playingPreview === cleanName &&
+                                  isPreviewPlaying && (
+                                    <PreviewAnimation
+                                      previewProgress={previewProgress}
+                                    />
+                                  )}
+                              </View>
                             </View>
                           );
                         })}
@@ -470,6 +502,18 @@ export default function HomeScreen() {
                               }
                             }}
                           >
+                            <Text style={styles.previewButtonText}>
+                              {playingPreview === cleanName && isPreviewPlaying
+                                ? "⏸"
+                                : "▶️"}
+                            </Text>
+                          </Pressable>
+                          {playingPreview === cleanName && isPreviewPlaying && (
+                            <PreviewAnimation
+                              previewProgress={previewProgress}
+                            />
+                          )}
+                        </View>
                       </View>
                     );
                   })}
