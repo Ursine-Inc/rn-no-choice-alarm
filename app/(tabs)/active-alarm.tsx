@@ -20,7 +20,6 @@ export default function ActiveAlarmScreen() {
   const [isAlarmSounding, setIsAlarmSounding] = useState(false);
   const alarmTriggeredRef = useRef(false);
 
-  // Function to play alarm sound
   const playAlarmSound = useCallback(
     async (audioName: string) => {
       if (alarmTriggeredRef.current || isAlarmKilled) {
@@ -33,7 +32,6 @@ export default function ActiveAlarmScreen() {
       try {
         console.log("🔔 ALARM TIME! Playing sound:", audioName);
 
-        // Set audio mode for alarm playback
         await Audio.setAudioModeAsync({
           playsInSilentModeIOS: true,
           staysActiveInBackground: true,
@@ -41,7 +39,6 @@ export default function ActiveAlarmScreen() {
           playThroughEarpieceAndroid: false,
         });
 
-        // Get the audio source from context using clean name
         const audioSource = getAudioSource(audioName);
 
         if (!audioSource) {
@@ -51,7 +48,6 @@ export default function ActiveAlarmScreen() {
 
         console.log("✅ Audio source found! Playing...");
 
-        // Load and play the audio with looping
         const { sound: newSound } = await Audio.Sound.createAsync(
           audioSource,
           {
@@ -76,7 +72,6 @@ export default function ActiveAlarmScreen() {
     [getAudioSource, isAlarmKilled]
   );
 
-  // Cleanup sound on unmount or when alarm is killed
   useEffect(() => {
     return () => {
       if (sound) {
@@ -87,7 +82,6 @@ export default function ActiveAlarmScreen() {
     };
   }, [sound]);
 
-  // Stop sound when alarm is killed
   useEffect(() => {
     if (isAlarmKilled && sound) {
       console.log("Stopping alarm sound - alarm killed");
@@ -99,7 +93,6 @@ export default function ActiveAlarmScreen() {
   }, [isAlarmKilled, sound]);
 
   useEffect(() => {
-    // Entrance animation
     Animated.spring(scaleAnim, {
       toValue: 1,
       tension: 50,
@@ -107,7 +100,6 @@ export default function ActiveAlarmScreen() {
       useNativeDriver: true,
     }).start();
 
-    // Calculate countdown
     const calculateCountdown = () => {
       const now = new Date();
       const alarmTime = new Date();
@@ -138,7 +130,6 @@ export default function ActiveAlarmScreen() {
         // console.log("Alarm not triggered yet - still counting down.");
       }
 
-      // If alarm is active (countdown reached 0), show "ALARM ACTIVE!"
       if (diff <= 0 && diff > -60000) {
         setCountdown("ALARM ACTIVE!");
       } else {
@@ -155,10 +146,8 @@ export default function ActiveAlarmScreen() {
     return () => clearInterval(interval);
   }, [hour, minutes, scaleAnim, isAlarmKilled, selectedAudio, playAlarmSound]);
 
-  // Handle alarm killed state
   useEffect(() => {
     if (isAlarmKilled) {
-      // Wait 2 seconds, then animate back to home
       const timeout = setTimeout(() => {
         setIsAlarmKilled(false);
         setHasActiveAlarm(false);
@@ -175,7 +164,6 @@ export default function ActiveAlarmScreen() {
   };
 
   const handleCancel = () => {
-    // Cancel the alarm and hide the tab
     setHasActiveAlarm(false);
     router.back();
   };

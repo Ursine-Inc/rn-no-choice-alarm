@@ -19,7 +19,13 @@ import {
   View,
 } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
+
+import { PreviewAnimation } from "@/components/player/preview-animation";
 import styles from "../index-styles";
+
+const START_CURSOR_MS = 5000;
+const PLAY_DURATION_MS = 10000;
+const TOTAL_PREVIEW_DURATION_MS = START_CURSOR_MS + PLAY_DURATION_MS;
 
 export default function HomeScreen() {
   const touch = Gesture.Tap();
@@ -37,10 +43,13 @@ export default function HomeScreen() {
   const [isRecurring, setIsRecurring] = useState(false);
   const [isSpeechExpanded, setIsSpeechExpanded] = useState(false);
   const [isMusicExpanded, setIsMusicExpanded] = useState(false);
-  const [selectedAudio, setSelectedAudio] = useState(""); // Stores cleanName
-  const [playingPreview, setPlayingPreview] = useState<string | null>(null); // stores cleanName
+  const [selectedAudio, setSelectedAudio] = useState("");
+  const [playingPreview, setPlayingPreview] = useState<string | null>(null);
+  const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
+  const [previewProgress, setPreviewProgress] = useState(0);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [showDayPicker, setShowDayPicker] = useState(false);
+  const [previewTimeout, setPreviewTimeout] = useState<number | null>(null);
 
   const daysOfWeek = [
     "Monday",
@@ -63,24 +72,47 @@ export default function HomeScreen() {
       if (sound) {
         sound.unloadAsync();
       }
+      if (previewTimeout) {
+        clearTimeout(previewTimeout);
+      }
     };
-  }, [sound]);
+  }, [sound, previewTimeout]);
+
+  const cleanupPreview = async () => {
+    if (previewTimeout) {
+      clearTimeout(previewTimeout);
+      setPreviewTimeout(null);
+    }
+    if (sound) {
+      try {
+        await sound.stopAsync();
+        await sound.unloadAsync();
+      } catch (error) {
+        console.error("Error cleaning up sound:", error);
+      }
+      setSound(null);
+    }
+    setPlayingPreview(null);
+    setIsPreviewPlaying(false);
+    setPreviewProgress(0);
+  };
+
+  const stopPreview = async () => {
+    await cleanupPreview();
+  };
 
   const playPreview = async (cleanName: string) => {
     try {
-      if (sound) {
-        await sound.stopAsync();
-        await sound.unloadAsync();
-        setSound(null);
-      }
+      await cleanupPreview();
 
       setPlayingPreview(cleanName);
+      setIsPreviewPlaying(true);
 
       const audioSource = getAudioSource(cleanName);
       if (!audioSource) {
         console.error("Audio source not found for:", cleanName);
-        alert("Audio file not found");
         setPlayingPreview(null);
+        setIsPreviewPlaying(false);
         return;
       }
 
@@ -89,42 +121,58 @@ export default function HomeScreen() {
         staysActiveInBackground: false,
         shouldDuckAndroid: true,
       });
+
       const { sound: newSound } = await Audio.Sound.createAsync(
         audioSource,
-        { shouldPlay: true },
-        (status: any) => {
-          // Handle playback status updates
+        {
+          shouldPlay: true,
+          positionMillis: START_CURSOR_MS,
+        },
+        (status) => {
           if (status.isLoaded && status.didJustFinish) {
             setPlayingPreview(null);
-            newSound.unloadAsync();
-            setSound(null);
+            setIsPreviewPlaying(false);
           }
         }
       );
 
       setSound(newSound);
 
-      setTimeout(async () => {
-        if (newSound) {
-          try {
-            await newSound.stopAsync();
-            await newSound.unloadAsync();
-            setPlayingPreview(null);
-            setSound(null);
-          } catch {
-            console.log("Sound already stopped");
+      const startTime = Date.now();
+      const progressInterval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / TOTAL_PREVIEW_DURATION_MS, 1); // 11 seconds total (10s play + 1s fade)
+        setPreviewProgress(progress);
+      }, 100);
+
+      const timeout = setTimeout(async () => {
+        try {
+          const fadeSteps = 20;
+          const fadeInterval = 1000 / fadeSteps;
+
+          for (let i = fadeSteps; i >= 0; i--) {
+            const volume = i / fadeSteps;
+            await newSound.setVolumeAsync(volume);
+            await new Promise((resolve) => setTimeout(resolve, fadeInterval));
           }
+        } catch (error) {
+          console.error("Error during fadeout:", error);
         }
-      }, 15000);
+
+        clearInterval(progressInterval);
+        await cleanupPreview();
+      }, PLAY_DURATION_MS);
+
+      setPreviewTimeout(timeout);
     } catch (error) {
       console.error("Error playing preview:", error);
       setPlayingPreview(null);
+      setIsPreviewPlaying(false);
       alert(`Error playing audio: ${error}`);
     }
   };
 
   const handleSave = () => {
-    // Validate inputs
     if (!hour || !minutes) {
       alert("Please set hour and minutes!");
       return;
@@ -355,15 +403,34 @@ export default function HomeScreen() {
                                   {cleanName}
                                 </Text>
                               </Pressable>
-                              <Pressable
-                                style={styles.previewButton}
-                                onPress={() => playPreview(cleanName)}
-                                disabled={playingPreview === cleanName}
-                              >
-                                <Text style={styles.previewButtonText}>
-                                  {playingPreview === cleanName ? "⏸" : "▶️"}
-                                </Text>
-                              </Pressable>
+                              <View style={{ position: "relative" }}>
+                                <Pressable
+                                  style={styles.previewButton}
+                                  onPress={() => {
+                                    if (
+                                      playingPreview === cleanName &&
+                                      isPreviewPlaying
+                                    ) {
+                                      stopPreview();
+                                    } else {
+                                      playPreview(cleanName);
+                                    }
+                                  }}
+                                >
+                                  <Text style={styles.previewButtonText}>
+                                    {playingPreview === cleanName &&
+                                    isPreviewPlaying
+                                      ? "⏸"
+                                      : "▶️"}
+                                  </Text>
+                                </Pressable>
+                                {playingPreview === cleanName &&
+                                  isPreviewPlaying && (
+                                    <PreviewAnimation
+                                      previewProgress={previewProgress}
+                                    />
+                                  )}
+                              </View>
                             </View>
                           );
                         })}
@@ -424,15 +491,32 @@ export default function HomeScreen() {
                             {cleanName}
                           </Text>
                         </Pressable>
-                        <Pressable
-                          style={styles.previewButton}
-                          onPress={() => playPreview(cleanName)}
-                          disabled={playingPreview === cleanName}
-                        >
-                          <Text style={styles.previewButtonText}>
-                            {playingPreview === cleanName ? "⏸" : "▶️"}
-                          </Text>
-                        </Pressable>
+                        <View style={{ position: "relative" }}>
+                          <Pressable
+                            style={styles.previewButton}
+                            onPress={() => {
+                              if (
+                                playingPreview === cleanName &&
+                                isPreviewPlaying
+                              ) {
+                                stopPreview();
+                              } else {
+                                playPreview(cleanName);
+                              }
+                            }}
+                          >
+                            <Text style={styles.previewButtonText}>
+                              {playingPreview === cleanName && isPreviewPlaying
+                                ? "⏸"
+                                : "▶️"}
+                            </Text>
+                          </Pressable>
+                          {playingPreview === cleanName && isPreviewPlaying && (
+                            <PreviewAnimation
+                              previewProgress={previewProgress}
+                            />
+                          )}
+                        </View>
                       </View>
                     );
                   })}
