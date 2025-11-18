@@ -37,10 +37,13 @@ export default function HomeScreen() {
   const [isRecurring, setIsRecurring] = useState(false);
   const [isSpeechExpanded, setIsSpeechExpanded] = useState(false);
   const [isMusicExpanded, setIsMusicExpanded] = useState(false);
-  const [selectedAudio, setSelectedAudio] = useState(""); // Stores cleanName
-  const [playingPreview, setPlayingPreview] = useState<string | null>(null); // stores cleanName
+  const [selectedAudio, setSelectedAudio] = useState("");
+  const [playingPreview, setPlayingPreview] = useState<string | null>(null);
+  const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
+  const [previewProgress, setPreviewProgress] = useState(0);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [showDayPicker, setShowDayPicker] = useState(false);
+  const [previewTimeout, setPreviewTimeout] = useState<number | null>(null);
 
   const daysOfWeek = [
     "Monday",
@@ -63,24 +66,47 @@ export default function HomeScreen() {
       if (sound) {
         sound.unloadAsync();
       }
+      if (previewTimeout) {
+        clearTimeout(previewTimeout);
+      }
     };
-  }, [sound]);
+  }, [sound, previewTimeout]);
+
+  const cleanupPreview = async () => {
+    if (previewTimeout) {
+      clearTimeout(previewTimeout);
+      setPreviewTimeout(null);
+    }
+    if (sound) {
+      try {
+        await sound.stopAsync();
+        await sound.unloadAsync();
+      } catch (error) {
+        console.error("Error cleaning up sound:", error);
+      }
+      setSound(null);
+    }
+    setPlayingPreview(null);
+    setIsPreviewPlaying(false);
+    setPreviewProgress(0);
+  };
+
+  const stopPreview = async () => {
+    await cleanupPreview();
+  };
 
   const playPreview = async (cleanName: string) => {
     try {
-      if (sound) {
-        await sound.stopAsync();
-        await sound.unloadAsync();
-        setSound(null);
-      }
+      await cleanupPreview();
 
       setPlayingPreview(cleanName);
+      setIsPreviewPlaying(true);
 
       const audioSource = getAudioSource(cleanName);
       if (!audioSource) {
         console.error("Audio source not found for:", cleanName);
-        alert("Audio file not found");
         setPlayingPreview(null);
+        setIsPreviewPlaying(false);
         return;
       }
 
@@ -89,15 +115,17 @@ export default function HomeScreen() {
         staysActiveInBackground: false,
         shouldDuckAndroid: true,
       });
+
       const { sound: newSound } = await Audio.Sound.createAsync(
         audioSource,
-        { shouldPlay: true },
-        (status: any) => {
-          // Handle playback status updates
+        {
+          shouldPlay: true,
+          positionMillis: 5000,
+        },
+        (status) => {
           if (status.isLoaded && status.didJustFinish) {
             setPlayingPreview(null);
-            newSound.unloadAsync();
-            setSound(null);
+            setIsPreviewPlaying(false);
           }
         }
       );
@@ -355,15 +383,19 @@ export default function HomeScreen() {
                                   {cleanName}
                                 </Text>
                               </Pressable>
-                              <Pressable
-                                style={styles.previewButton}
-                                onPress={() => playPreview(cleanName)}
-                                disabled={playingPreview === cleanName}
-                              >
-                                <Text style={styles.previewButtonText}>
-                                  {playingPreview === cleanName ? "⏸" : "▶️"}
-                                </Text>
-                              </Pressable>
+                              <View style={{ position: "relative" }}>
+                                <Pressable
+                                  style={styles.previewButton}
+                                  onPress={() => {
+                                    if (
+                                      playingPreview === cleanName &&
+                                      isPreviewPlaying
+                                    ) {
+                                      stopPreview();
+                                    } else {
+                                      playPreview(cleanName);
+                                    }
+                                  }}
                             </View>
                           );
                         })}
@@ -424,15 +456,20 @@ export default function HomeScreen() {
                             {cleanName}
                           </Text>
                         </Pressable>
-                        <Pressable
-                          style={styles.previewButton}
-                          onPress={() => playPreview(cleanName)}
-                          disabled={playingPreview === cleanName}
-                        >
-                          <Text style={styles.previewButtonText}>
-                            {playingPreview === cleanName ? "⏸" : "▶️"}
-                          </Text>
-                        </Pressable>
+                        <View style={{ position: "relative" }}>
+                          <Pressable
+                            style={styles.previewButton}
+                            onPress={() => {
+                              if (
+                                playingPreview === cleanName &&
+                                isPreviewPlaying
+                              ) {
+                                stopPreview();
+                              } else {
+                                playPreview(cleanName);
+                              }
+                            }}
+                          >
                       </View>
                     );
                   })}
