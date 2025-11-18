@@ -46,9 +46,8 @@ export function KillSwitch() {
         setHoldProgress(progress);
 
         if (progress >= 1) {
-          console.debug("Kill switch held for 8 seconds.");
-          //handleKillSwitch();
-          //clearHoldTimer();
+          handleKillSwitch();
+          clearHoldTimer();
         }
       }
     }, 50);
@@ -85,7 +84,7 @@ export function KillSwitch() {
         onPressOut={handlePressOut}
       >
         <Image
-          source={require("@/assets/images/kill-switch-2025-trimmed.png")}
+          source={require("@/assets/images/kill-switch-2025.png")}
           style={styles.image}
           contentFit="contain"
         />
