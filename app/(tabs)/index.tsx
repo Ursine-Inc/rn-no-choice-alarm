@@ -23,6 +23,10 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { PreviewAnimation } from "@/components/player/preview-animation";
 import styles from "../index-styles";
 
+const START_CURSOR_MS = 5000;
+const PLAY_DURATION_MS = 10000;
+const TOTAL_PREVIEW_DURATION_MS = START_CURSOR_MS + PLAY_DURATION_MS;
+
 export default function HomeScreen() {
   const touch = Gesture.Tap();
   const {
@@ -122,7 +126,7 @@ export default function HomeScreen() {
         audioSource,
         {
           shouldPlay: true,
-          positionMillis: 5000,
+          positionMillis: START_CURSOR_MS,
         },
         (status) => {
           if (status.isLoaded && status.didJustFinish) {
@@ -134,11 +138,10 @@ export default function HomeScreen() {
 
       setSound(newSound);
 
-      // Update progress every 100ms
       const startTime = Date.now();
       const progressInterval = setInterval(() => {
         const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / 11000, 1); // 11 seconds total (10s play + 1s fade)
+        const progress = Math.min(elapsed / TOTAL_PREVIEW_DURATION_MS, 1); // 11 seconds total (10s play + 1s fade)
         setPreviewProgress(progress);
       }, 100);
 
@@ -153,12 +156,12 @@ export default function HomeScreen() {
             await new Promise((resolve) => setTimeout(resolve, fadeInterval));
           }
         } catch (error) {
-          console.log("Error during fadeout:", error);
+          console.error("Error during fadeout:", error);
         }
 
         clearInterval(progressInterval);
         await cleanupPreview();
-      }, 10000);
+      }, PLAY_DURATION_MS);
 
       setPreviewTimeout(timeout);
     } catch (error) {
