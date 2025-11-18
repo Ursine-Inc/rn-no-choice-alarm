@@ -1,84 +1,183 @@
 import { useActiveAlarm } from "@/hooks/useActiveAlarm";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-
-// Feature flag - set to true to enable kill switch in staging
-const ENABLE_KILL_SWITCH_IN_STAGING = true;
+import { Image } from "expo-image";
+import { useRef, useState } from "react";
+import { Pressable, Text as RNText, StyleSheet, View } from "react-native";
+import Svg, {
+  Circle,
+  ClipPath,
+  Defs,
+  LinearGradient,
+  Rect,
+  Stop,
+} from "react-native-svg";
 
 export function KillSwitch() {
-  const { hasActiveAlarm, killAlarm } = useActiveAlarm();
+  const {
+    hasActiveAlarm,
+    killAlarm,
+    pauseAlarmCountdown,
+    resumeAlarmCountdown,
+  } = useActiveAlarm();
+  const [holdProgress, setHoldProgress] = useState(0);
+  const [isHolding, setIsHolding] = useState(false);
+  const holdTimerRef = useRef<number | null>(null);
+  const holdStartTimeRef = useRef<number | null>(null);
 
-  // Only show in development or if feature flag is enabled
-  const isDev = __DEV__;
-  const isStaging = ENABLE_KILL_SWITCH_IN_STAGING;
+  const HOLD_DURATION_MS = 8000; // 8 seconds
 
-  if (!isDev && !isStaging) {
-    return null;
-  }
-
-  // Only show if there's an active alarm
   if (!hasActiveAlarm) {
     return null;
   }
 
+  const remainingSeconds = Math.ceil(
+    (HOLD_DURATION_MS - holdProgress * HOLD_DURATION_MS) / 1000
+  );
+
+  const handlePressIn = () => {
+    setIsHolding(true);
+    pauseAlarmCountdown();
+    holdStartTimeRef.current = Date.now();
+    setHoldProgress(0.01); // Show overlay immediately on first press
+
+    holdTimerRef.current = setInterval(() => {
+      if (holdStartTimeRef.current) {
+        const elapsed = Date.now() - holdStartTimeRef.current;
+        const progress = Math.min(elapsed / HOLD_DURATION_MS, 1);
+        setHoldProgress(progress);
+
+        if (progress >= 1) {
+          console.debug("Kill switch held for 8 seconds.");
+          //handleKillSwitch();
+          //clearHoldTimer();
+        }
+      }
+    }, 50);
+  };
+
+  const handlePressOut = () => {
+    setIsHolding(false);
+    resumeAlarmCountdown();
+    clearHoldTimer();
+    setHoldProgress(0);
+    holdStartTimeRef.current = null;
+  };
+
+  const clearHoldTimer = () => {
+    if (holdTimerRef.current) {
+      clearInterval(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+  };
+
   const handleKillSwitch = () => {
     console.log("🔴 KILL SWITCH ACTIVATED - Alarm disabled");
     killAlarm();
-    // TODO: Add additional alarm cancellation logic here
-    // (stop sound, clear notifications, etc.)
   };
 
   return (
     <View style={styles.container}>
       <Pressable
-        style={({ pressed }) => [styles.badge, pressed && styles.badgePressed]}
-        onPress={handleKillSwitch}
+        style={({ pressed }) => [
+          styles.imageButton,
+          pressed && styles.imageButtonPressed,
+        ]}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
       >
-        <Text style={styles.icon}>🔴</Text>
-        <Text style={styles.text}>KILL</Text>
+        <Image
+          source={require("@/assets/images/kill-switch-2025-trimmed.png")}
+          style={styles.image}
+          contentFit="contain"
+        />
+        <Svg
+          width={100}
+          height={100}
+          style={styles.progressOverlay}
+          pointerEvents="none"
+        >
+          <Defs>
+            <LinearGradient id="holdGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <Stop offset="0%" stopColor="#ff4444" stopOpacity={0.8} />
+              <Stop
+                offset={`${holdProgress * 100}%`}
+                stopColor="#FF6B35"
+                stopOpacity={0.8}
+              />
+              <Stop
+                offset={`${holdProgress * 100}%`}
+                stopColor="#ff4444"
+                stopOpacity={0.8}
+              />
+              <Stop offset="100%" stopColor="#ff4444" stopOpacity={0.8} />
+            </LinearGradient>
+            <ClipPath id="circleClip">
+              <Circle cx={50} cy={50} r={50} />
+            </ClipPath>
+          </Defs>
+          <Rect
+            x={0}
+            y={0}
+            width={100}
+            height={100}
+            fill={holdProgress > 0 ? "url(#holdGradient)" : "transparent"}
+            clipPath="url(#circleClip)"
+          />
+        </Svg>
       </Pressable>
+      {isHolding && (
+        <View style={styles.counterContainer}>
+          <RNText style={styles.counterText}>
+            Hold for {remainingSeconds}s more!
+          </RNText>
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    position: "absolute",
-    top: 50,
-    left: 0,
-    zIndex: 9999,
-  },
-  badge: {
-    backgroundColor: "#ff4444",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderTopRightRadius: 20,
-    borderBottomRightRadius: 20,
-    flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 2,
-      height: 2,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 8,
-    borderWidth: 2,
-    borderLeftWidth: 0,
-    borderColor: "#cc0000",
+    justifyContent: "center",
+    width: "100%",
   },
-  badgePressed: {
-    backgroundColor: "#cc0000",
+  imageButton: {
+    width: 100,
+    height: 100,
+    position: "relative",
+  },
+  imageButtonPressed: {
+    opacity: 0.7,
     transform: [{ scale: 0.95 }],
   },
-  icon: {
-    fontSize: 16,
+  image: {
+    width: "100%",
+    height: "100%",
   },
-  text: {
+  progressOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+  },
+  counterContainer: {
+    marginTop: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: "#FF6B35",
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  counterText: {
     color: "#fff",
     fontSize: 14,
-    fontWeight: "900",
-    letterSpacing: 1,
+    fontWeight: "bold",
+    letterSpacing: 0.5,
   },
 });

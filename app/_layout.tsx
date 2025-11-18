@@ -7,7 +7,6 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import "react-native-reanimated";
 
-import { KillSwitch } from "@/components/KillSwitch";
 import { ActiveAlarmProvider } from "@/hooks/useActiveAlarm";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useEffect, useRef } from "react";
@@ -45,7 +44,6 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" />
           </Stack>
-          <KillSwitch />
         </ThemeProvider>
       </GestureHandlerRootView>
     </ActiveAlarmProvider>
