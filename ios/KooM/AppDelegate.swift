@@ -1,10 +1,12 @@
 import Expo
 import React
 import ReactAppDependencyProvider
+import UIKit
 
 @UIApplicationMain
 public class AppDelegate: ExpoAppDelegate {
   var window: UIWindow?
+  var splashWindow: UIWindow?
 
   var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
   var reactNativeFactory: RCTReactNativeFactory?
@@ -23,13 +25,48 @@ public class AppDelegate: ExpoAppDelegate {
 
 #if os(iOS) || os(tvOS)
     window = UIWindow(frame: UIScreen.main.bounds)
+    window?.backgroundColor = UIColor(patternImage: UIImage(named: "SplashScreen") ?? UIImage())
+    
+    // Show custom splash screen on top
+    showSplashScreen()
+    
     factory.startReactNative(
       withModuleName: "main",
       in: window,
       launchOptions: launchOptions)
+    
+    // Hide splash after 3 seconds with fade
+    DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+      self.hideSplashScreen()
+    }
 #endif
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+  
+  private func showSplashScreen() {
+    splashWindow = UIWindow(frame: UIScreen.main.bounds)
+    splashWindow?.windowLevel = .normal + 1
+    splashWindow?.rootViewController = createSplashViewController()
+    splashWindow?.makeKeyAndVisible()
+  }
+  
+  private func createSplashViewController() -> UIViewController {
+    let viewController = UIViewController()
+    let imageView = UIImageView(frame: UIScreen.main.bounds)
+    imageView.image = UIImage(named: "SplashScreen")
+    imageView.contentMode = .scaleAspectFill
+    viewController.view = imageView
+    return viewController
+  }
+  
+  private func hideSplashScreen() {
+    UIView.animate(withDuration: 0.3, animations: {
+      self.splashWindow?.alpha = 0
+    }) { _ in
+      self.splashWindow?.isHidden = true
+      self.splashWindow = nil
+    }
   }
 
   // Linking API

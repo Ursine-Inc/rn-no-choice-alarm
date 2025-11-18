@@ -100,3 +100,4 @@ yarn-error.*
 
 assets/generated-icons/
 docs/internal/
+scripts/internal/
