@@ -1,13 +1,14 @@
+import { Picker } from "@react-native-picker/picker";
 import { Image } from "expo-image";
+import { useEffect, useState } from "react";
 
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { PreviewAnimation } from "@/components/player/preview-animation";
 import { useActiveAlarm } from "@/hooks/useActiveAlarm";
-import { Picker } from "@react-native-picker/picker";
 import { Audio } from "expo-av";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
 import {
   Modal,
   Platform,
@@ -20,7 +21,6 @@ import {
 } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
-import { PreviewAnimation } from "@/components/player/preview-animation";
 import styles from "../index-styles";
 
 const START_CURSOR_MS = 5000;
