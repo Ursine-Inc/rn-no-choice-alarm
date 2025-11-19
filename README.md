@@ -15,8 +15,8 @@
   
   | Platform | Version | Build |
   |----------|---------|-------|
-  | iOS      | 1.0.0   | 2025.11.18.2 |
-  | Android  | 1.0.0   | 202511182 |
+  | iOS      | 1.0.0   | 2025.11.18.3 |
+  | Android  | 1.0.0   | 202511183 |
   
 </div>
 
@@ -57,7 +57,9 @@ pnpm expo start --ios
 pnpm expo start --android
 ```
 
-## 🔧 iOS Version Management
+## 🔧 Version Management
+
+### iOS Build Number
 
 > **⚠️ IMPORTANT:** When updating the iOS build number for TestFlight, you must update ALL THREE files:
 
@@ -68,6 +70,17 @@ pnpm expo start --android
 | 3️⃣   | `CURRENT_PROJECT_VERSION` | [`ios/KooM.xcodeproj/project.pbxproj`](ios/KooM.xcodeproj/project.pbxproj) |
 
 **Why?** The Xcode project file (`project.pbxproj`) takes precedence during builds. If you only update `app.json`, EAS will still use the value from `project.pbxproj`.
+
+### Android Version Code
+
+> **⚠️ IMPORTANT:** When updating the Android version code, you must update BOTH files:
+
+| File | Property                   | Direct Link                                            |
+| ---- | -------------------------- | ------------------------------------------------------ |
+| 1️⃣   | `expo.android.versionCode` | [`app.json`](app.json)                                 |
+| 2️⃣   | `versionCode`              | [`android/app/build.gradle`](android/app/build.gradle) |
+
+**Why?** The Gradle build file (`build.gradle`) is the source of truth for Android builds. Both must be kept in sync.
 
 ---
 
