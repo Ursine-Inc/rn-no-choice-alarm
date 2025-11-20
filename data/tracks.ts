@@ -1,5 +1,5 @@
-const PATH_TO_MUSIC = "../../assets/audio/music/";
-const PATH_TO_SPEECH = "../../assets/audio/speech/";
+const PATH_TO_MUSIC = "../assets/audio/music/";
+const PATH_TO_SPEECH = "../assets/audio/speech/";
 
 export type AudioFileName =
   | keyof typeof MUSIC_AUDIO_SOURCES

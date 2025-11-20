@@ -30,7 +30,6 @@ export default function RootLayout() {
   }, [fadeAnim]);
 
   if (!loaded) {
-    // Async font loading only occurs in development.
     return null;
   }
 
