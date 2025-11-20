@@ -1,6 +1,18 @@
 import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f0f8ff",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingLeft: 6,
+    paddingRight: 6,
+  },
+  innerContainer: {
+    paddingLeft: 15,
+    paddingRight: 15,
+  },
   titleContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -73,8 +85,8 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
+    justifyContent: "flex-start",
+    gap: 5,
   },
   addButton: {
     padding: 5,
@@ -212,9 +224,10 @@ const styles = StyleSheet.create({
 
   audioList: {
     width: "120%",
+    overflow: "scroll",
     marginTop: 5,
-    marginBottom: 10,
-    maxHeight: 250,
+    marginBottom: 0,
+    maxHeight: 65,
   },
   audioItem: {
     backgroundColor: "#f0f0f0",
@@ -254,7 +267,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#4CAF50",
     padding: 15,
     width: "120%",
-    marginTop: 20,
+    marginTop: 0,
     borderRadius: 8,
   },
   saveButtonLabel: {

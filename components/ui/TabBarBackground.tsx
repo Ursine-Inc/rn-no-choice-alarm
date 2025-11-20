@@ -1,12 +1,12 @@
-import { BlurView } from "expo-blur";
-import { StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 export default function TabBarBackground() {
   return (
-    <BlurView
-      tint="systemChromeMaterial"
-      intensity={100}
-      style={StyleSheet.absoluteFill}
+    <View
+      style={[
+        StyleSheet.absoluteFill,
+        { backgroundColor: "rgba(255,255,255,0.9)" },
+      ]}
     />
   );
 }
