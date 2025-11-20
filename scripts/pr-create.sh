@@ -127,7 +127,6 @@ echo ""
 if [ "$DRY_RUN" -eq 1 ]; then
     echo "Dry run mode — not creating PR. Exiting."
     exit 0
-fi
 else 
     exec gh pr create "$@"
 fi
