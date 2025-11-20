@@ -3,21 +3,21 @@
   
   # KooM!
   
-  ### An alarm app with no mercy
-  
-  A React Native alarm app with a snooze option you have to work for. Get up or suffer the consequences!
-  
-  [![Expo](https://img.shields.io/badge/Expo-SDK%2053-000020.svg?style=flat&logo=expo)](https://expo.dev/)
-  [![React Native](https://img.shields.io/badge/React%20Native-0.79-61DAFB.svg?style=flat&logo=react)](https://reactnative.dev/)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6.svg?style=flat&logo=typescript)](https://www.typescriptlang.org/)
-  
-  ### Version Info
-  
-  | Platform | Version | Build |
-  |----------|---------|-------|
-  | iOS      | 1.0.0   | 2025.11.18.2 |
-  | Android  | 1.0.0   | 202511182 |
-  
+  ## The Alarm App You Can't Snooze!
+
+A React Native alarm app with a snooze option you have to work for. Get up or suffer the consequences!
+
+[![Expo](https://img.shields.io/badge/Expo-SDK%2053-000020.svg?style=flat&logo=expo)](https://expo.dev/)
+[![React Native](https://img.shields.io/badge/React%20Native-0.79-61DAFB.svg?style=flat&logo=react)](https://reactnative.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6.svg?style=flat&logo=typescript)](https://www.typescriptlang.org/)
+
+### Version Info
+
+| Platform | Version | Build        |
+| -------- | ------- | ------------ |
+| iOS      | 1.0.0   | 2025.11.21.1 |
+| Android  | 1.0.0   | 2025112101   |
+
 </div>
 
 ---
@@ -57,7 +57,9 @@ pnpm expo start --ios
 pnpm expo start --android
 ```
 
-## 🔧 iOS Version Management
+## 🔧 Version Management
+
+### iOS Build Number
 
 > **⚠️ IMPORTANT:** When updating the iOS build number for TestFlight, you must update ALL THREE files:
 
@@ -68,6 +70,17 @@ pnpm expo start --android
 | 3️⃣   | `CURRENT_PROJECT_VERSION` | [`ios/KooM.xcodeproj/project.pbxproj`](ios/KooM.xcodeproj/project.pbxproj) |
 
 **Why?** The Xcode project file (`project.pbxproj`) takes precedence during builds. If you only update `app.json`, EAS will still use the value from `project.pbxproj`.
+
+### Android Version Code
+
+> **⚠️ IMPORTANT:** When updating the Android version code, you must update BOTH files:
+
+| File | Property                   | Direct Link                                            |
+| ---- | -------------------------- | ------------------------------------------------------ |
+| 1️⃣   | `expo.android.versionCode` | [`app.json`](app.json)                                 |
+| 2️⃣   | `versionCode`              | [`android/app/build.gradle`](android/app/build.gradle) |
+
+**Why?** The Gradle build file (`build.gradle`) is the source of truth for Android builds. Both must be kept in sync.
 
 ---
 

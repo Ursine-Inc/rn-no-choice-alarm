@@ -104,3 +104,4 @@ scripts/internal/
 assets/audio/*/archive/
 
 filesystem/
+*.bak.*
