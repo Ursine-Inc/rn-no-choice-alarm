@@ -3,21 +3,21 @@
   
   # KooM!
   
-  ### An alarm app with no mercy
-  
-  A React Native alarm app with a snooze option you have to work for. Get up or suffer the consequences!
-  
-  [![Expo](https://img.shields.io/badge/Expo-SDK%2053-000020.svg?style=flat&logo=expo)](https://expo.dev/)
-  [![React Native](https://img.shields.io/badge/React%20Native-0.79-61DAFB.svg?style=flat&logo=react)](https://reactnative.dev/)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6.svg?style=flat&logo=typescript)](https://www.typescriptlang.org/)
-  
-  ### Version Info
-  
-  | Platform | Version | Build |
-  |----------|---------|-------|
-  | iOS      | 1.0.0   | 2025.11.20.1 |
-  | Android  | 1.0.0   | 202511201 |
-  
+  ## The Alarm App You Can't Snooze!
+
+A React Native alarm app with a snooze option you have to work for. Get up or suffer the consequences!
+
+[![Expo](https://img.shields.io/badge/Expo-SDK%2053-000020.svg?style=flat&logo=expo)](https://expo.dev/)
+[![React Native](https://img.shields.io/badge/React%20Native-0.79-61DAFB.svg?style=flat&logo=react)](https://reactnative.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6.svg?style=flat&logo=typescript)](https://www.typescriptlang.org/)
+
+### Version Info
+
+| Platform | Version | Build        |
+| -------- | ------- | ------------ |
+| iOS      | 1.0.0   | 2025.11.20.1 |
+| Android  | 1.0.0   | 202511201    |
+
 </div>
 
 ---
