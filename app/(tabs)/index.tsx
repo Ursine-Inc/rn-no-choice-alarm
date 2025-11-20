@@ -1,5 +1,5 @@
 import { Picker } from "@react-native-picker/picker";
-import { Image } from "expo-image";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 
 import { AlarmStorage } from "@/data/AlarmStorage";
@@ -25,7 +25,6 @@ const PLAY_DURATION_MS = 10000;
 const TOTAL_PREVIEW_DURATION_MS = START_CURSOR_MS + PLAY_DURATION_MS;
 
 export default function HomeScreen() {
-  const touch = Gesture.Tap();
   const {
     setHasActiveAlarm,
     setIsAlarmKilled,
@@ -33,10 +32,12 @@ export default function HomeScreen() {
     audioCollections,
     getAudioSource,
     getAudioCollection,
+    hasActiveAlarm,
   } = useActiveAlarm();
-  const [hour, setHour] = useState("");
-  const [minutes, setMinutes] = useState("");
+  const [hour, setHour] = useState(7);
+  const [minutes, setMinutes] = useState(0);
   const [day, setDay] = useState("Monday");
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [isRecurring, setIsRecurring] = useState(false);
   const [isSpeechExpanded, setIsSpeechExpanded] = useState(false);
   const [isMusicExpanded, setIsMusicExpanded] = useState(false);
@@ -170,30 +171,34 @@ export default function HomeScreen() {
   };
 
   const handleSave = () => {
-    if (!hour || !minutes) {
-      alert("Please set hour and minutes!");
-      return;
-    }
-
     if (!selectedAudio) {
       alert("Please select an alarm sound!");
       return;
     }
-
-    setIsAlarmKilled(false);
-    setHasActiveAlarm(true);
-
-    const cleanName = selectedAudio;
-    if (!audioMap.get(cleanName)) {
-      alert("Selected audio not found");
+    if (!audioMap.has(selectedAudio)) {
+      alert("Selected audio is invalid. Please choose a valid sound.");
       return;
     }
-
+    setIsAlarmKilled(false);
+    setHasActiveAlarm(false);
+    const cleanName = selectedAudio;
+    const alarmId = Date.now().toString();
+    const timeString = `${String(hour).padStart(2, "0")}:${String(
+      minutes
+    ).padStart(2, "0")}`;
+    AlarmStorage.saveAlarm({
+      id: alarmId,
+      time: timeString,
+      day,
+      enabled: true,
+      trackIds: [cleanName],
+      recurring: isRecurring,
+    });
     router.push({
       pathname: "/active-alarm",
       params: {
-        hour,
-        minutes,
+        hour: String(hour).padStart(2, "0"),
+        minutes: String(minutes).padStart(2, "0"),
         day,
         isRecurring: isRecurring.toString(),
         selectedAudio: cleanName,

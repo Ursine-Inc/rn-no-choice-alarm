@@ -1,17 +1,19 @@
-import { KillSwitch } from "@/components/KillSwitch";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { useActiveAlarm } from "@/hooks/useActiveAlarm";
 import { Audio } from "expo-av";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { KillSwitch } from "@/components/KillSwitch";
+import ParallaxScrollView from "@/components/ParallaxScrollView";
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import { useActiveAlarm } from "@/hooks/useActiveAlarm";
+
 export default function ActiveAlarmScreen() {
   const params = useLocalSearchParams();
   const { hour, minutes, day, isRecurring, selectedAudio } = params;
+
   const {
     setHasActiveAlarm,
     isAlarmKilled,
@@ -26,9 +28,9 @@ export default function ActiveAlarmScreen() {
   const [isAlarmSounding, setIsAlarmSounding] = useState(false);
   const alarmTriggeredRef = useRef(false);
 
-  useEffect(() => {
-    setHasActiveAlarm(true);
-  }, [setHasActiveAlarm]);
+  // useEffect(() => {
+  //   setHasActiveAlarm(true);
+  // }, [setHasActiveAlarm]);
 
   const playAlarmSound = useCallback(
     async (audioName: string) => {
@@ -40,8 +42,6 @@ export default function ActiveAlarmScreen() {
       setIsAlarmSounding(true);
 
       try {
-        console.log("🔔 ALARM TIME! Playing sound:", audioName);
-
         await Audio.setAudioModeAsync({
           playsInSilentModeIOS: true,
           staysActiveInBackground: true,
@@ -51,12 +51,11 @@ export default function ActiveAlarmScreen() {
 
         const audioSource = getAudioSource(audioName);
 
-        if (!audioSource) {
-          console.error("❌ Audio source not found for:", audioName);
-          return;
-        }
-
-        console.log("✅ Audio source found! Playing...");
+        // if (!audioSource) {
+        //   console.error("❌ Audio source not found for:", audioName);
+        //   alert(`Audio not found: ${audioName}`);
+        //   return;
+        // }
 
         const { sound: newSound } = await Audio.Sound.createAsync(
           audioSource,
@@ -74,7 +73,6 @@ export default function ActiveAlarmScreen() {
 
         setSound(newSound);
       } catch (error) {
-        console.error("Error playing alarm sound:", error);
         setIsAlarmSounding(false);
         alarmTriggeredRef.current = false;
       }
@@ -82,25 +80,25 @@ export default function ActiveAlarmScreen() {
     [getAudioSource, isAlarmKilled]
   );
 
-  useEffect(() => {
-    return () => {
-      if (sound) {
-        console.log("Cleaning up alarm sound");
-        sound.stopAsync();
-        sound.unloadAsync();
-      }
-    };
-  }, [sound]);
+  // useEffect(() => {
+  //   return () => {
+  //     if (sound) {
+  //       console.log("Cleaning up alarm sound");
+  //       sound.stopAsync();
+  //       sound.unloadAsync();
+  //     }
+  //   };
+  // }, [sound]);
 
-  useEffect(() => {
-    if (isAlarmKilled && sound) {
-      console.log("Stopping alarm sound - alarm killed");
-      sound.stopAsync();
-      sound.unloadAsync();
-      setSound(null);
-      setIsAlarmSounding(false);
-    }
-  }, [isAlarmKilled, sound]);
+  // useEffect(() => {
+  //   if (isAlarmKilled && sound) {
+  //     console.log("Stopping alarm sound - alarm killed");
+  //     sound.stopAsync();
+  //     sound.unloadAsync();
+  //     setSound(null);
+  //     setIsAlarmSounding(false);
+  //   }
+  // }, [isAlarmKilled, sound]);
 
   useEffect(() => {
     Animated.spring(scaleAnim, {
@@ -122,7 +120,12 @@ export default function ActiveAlarmScreen() {
 
       const diff = alarmTime.getTime() - now.getTime();
 
-      if (diff <= 0 && !isAlarmKilled && !alarmTriggeredRef.current) {
+      if (
+        diff <= 0 &&
+        !isAlarmKilled &&
+        !alarmTriggeredRef.current &&
+        !isAlarmSounding
+      ) {
         playAlarmSound(selectedAudio as string);
       }
 
@@ -140,7 +143,16 @@ export default function ActiveAlarmScreen() {
     const interval = setInterval(calculateCountdown, 1000);
 
     return () => clearInterval(interval);
-  }, [hour, minutes, scaleAnim, isAlarmKilled, selectedAudio, playAlarmSound]);
+  }, [
+    hour,
+    minutes,
+    scaleAnim,
+    isAlarmKilled,
+    selectedAudio,
+    playAlarmSound,
+    isAlarmSounding,
+    isAlarmCountdownPaused,
+  ]);
 
   useEffect(() => {
     if (isAlarmKilled) {

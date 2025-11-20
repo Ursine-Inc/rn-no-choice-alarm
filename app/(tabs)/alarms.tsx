@@ -1,43 +1,37 @@
-import ParallaxScrollView from "@/components/ParallaxScrollView";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
+import { type Alarm, AlarmStorage } from "@/data/AlarmStorage";
 import { Image } from "expo-image";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import ParallaxScrollView from "../../components/ParallaxScrollView";
+import { ThemedText } from "../../components/ThemedText";
+import { ThemedView } from "../../components/ThemedView";
 
 export default function AlarmsScreen() {
-  // TODO: Replace with actual saved alarms from storage
-  const savedAlarms = [
-    {
-      id: "1",
-      hour: "07",
-      minutes: "30",
-      day: "Monday",
-      isRecurring: true,
-      selectedAudio: "Getyoass",
-      isActive: true,
-    },
-    {
-      id: "2",
-      hour: "09",
-      minutes: "00",
-      day: "Wednesday",
-      isRecurring: false,
-      selectedAudio: "Pete",
-      isActive: false,
-    },
-  ];
+  const [savedAlarms, setSavedAlarms] = useState<Alarm[]>([]);
 
-  const handleAlarmPress = (alarm: (typeof savedAlarms)[0]) => {
-    // Navigate to active alarm screen with alarm details
+  useFocusEffect(
+    useCallback(() => {
+      const alarms = AlarmStorage.getAllAlarms();
+      setSavedAlarms(alarms);
+    }, [])
+  );
+
+  const handleAlarmPress = (alarm: Alarm) => {
+    const [hour, minutes] = alarm.time.split(":");
+    const selectedAudio = alarm.trackIds[0];
+    if (!selectedAudio) {
+      alert("This alarm is missing a valid sound. Please edit or recreate it.");
+      return;
+    }
     router.push({
       pathname: "/active-alarm",
       params: {
-        hour: alarm.hour,
-        minutes: alarm.minutes,
+        hour,
+        minutes,
         day: alarm.day,
-        isRecurring: alarm.isRecurring.toString(),
-        selectedAudio: alarm.selectedAudio,
+        isRecurring: alarm.recurring.toString(),
+        selectedAudio,
       },
     });
   };
@@ -55,6 +49,7 @@ export default function AlarmsScreen() {
           style={styles.headerImage}
         />
       }
+      noPadding={true}
     >
       <ThemedView style={styles.container}>
         <ThemedText type="title" style={styles.title}>
@@ -73,66 +68,69 @@ export default function AlarmsScreen() {
         ) : (
           <>
             <View style={styles.alarmsList}>
-              {savedAlarms.map((alarm) => (
-                <Pressable
-                  key={alarm.id}
-                  style={[
-                    styles.alarmCard,
-                    !alarm.isActive && styles.alarmCardInactive,
-                  ]}
-                  onPress={() => handleAlarmPress(alarm)}
-                >
-                  <View style={styles.alarmHeader}>
-                    <Text
-                      style={[
-                        styles.alarmTime,
-                        !alarm.isActive && styles.alarmTimeInactive,
-                      ]}
-                    >
-                      {alarm.hour}:{alarm.minutes}
-                    </Text>
-                    <View
-                      style={[
-                        styles.statusBadge,
-                        alarm.isActive
-                          ? styles.statusBadgeActive
-                          : styles.statusBadgeInactive,
-                      ]}
-                    >
-                      <Text style={styles.statusText}>
-                        {alarm.isActive ? "Active" : "Inactive"}
+              {savedAlarms.map((alarm) => {
+                const [hour, minutes] = alarm.time.split(":");
+                return (
+                  <Pressable
+                    key={alarm.id}
+                    style={[
+                      styles.alarmCard,
+                      !alarm.enabled && styles.alarmCardInactive,
+                    ]}
+                    onPress={() => handleAlarmPress(alarm)}
+                  >
+                    <View style={styles.alarmHeader}>
+                      <Text
+                        style={[
+                          styles.alarmTime,
+                          !alarm.enabled && styles.alarmTimeInactive,
+                        ]}
+                      >
+                        {hour}:{minutes}
                       </Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.alarmDetails}>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>📅</Text>
-                      <Text style={styles.detailValue}>{alarm.day}</Text>
-                    </View>
-
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>🔁</Text>
-                      <Text style={styles.detailValue}>
-                        {alarm.isRecurring ? "Recurring" : "One-time"}
-                      </Text>
-                    </View>
-
-                    {alarm.selectedAudio && (
-                      <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>🔊</Text>
-                        <Text
-                          style={styles.detailValue}
-                          numberOfLines={1}
-                          ellipsizeMode="tail"
-                        >
-                          {alarm.selectedAudio}
+                      <View
+                        style={[
+                          styles.statusBadge,
+                          alarm.enabled
+                            ? styles.statusBadgeActive
+                            : styles.statusBadgeInactive,
+                        ]}
+                      >
+                        <Text style={styles.statusText}>
+                          {alarm.enabled ? "Active" : "Inactive"}
                         </Text>
                       </View>
-                    )}
-                  </View>
-                </Pressable>
-              ))}
+                    </View>
+
+                    <View style={styles.alarmDetails}>
+                      <View style={styles.detailRow}>
+                        <Text style={styles.detailLabel}>📅</Text>
+                        <Text style={styles.detailValue}>{alarm.day}</Text>
+                      </View>
+
+                      <View style={styles.detailRow}>
+                        <Text style={styles.detailLabel}>🔁</Text>
+                        <Text style={styles.detailValue}>
+                          {alarm.recurring ? "Recurring" : "One-time"}
+                        </Text>
+                      </View>
+
+                      {alarm.trackIds.length > 0 && (
+                        <View style={styles.detailRow}>
+                          <Text style={styles.detailLabel}>🔊</Text>
+                          <Text
+                            style={styles.detailValue}
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                          >
+                            {alarm.trackIds[0]}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  </Pressable>
+                );
+              })}
             </View>
 
             <Pressable style={styles.createButton} onPress={handleCreateNew}>
