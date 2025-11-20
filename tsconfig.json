@@ -1,18 +1,4 @@
 {
-  "extends": "expo/tsconfig.base",
-  "compilerOptions": {
-    "strict": true,
-    "jsx": "react-jsx",
-    "ignoreDeprecations": "6.0",
-    "baseUrl": "./app/",
-    "paths": {
-      "@/*": ["./*"],
-      "@/assets/*": ["../assets/*"],
-      "@/app/*": ["./app/*"],
-      "@/hooks/*": ["./hooks/*"],
-      "@/constants/*": ["./constants/*"],
-      "@/components/*": ["./components/*"]
-    }
-  },
+  "extends": "./tsconfig.base.local.json",
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
 }

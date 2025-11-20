@@ -15,7 +15,7 @@ module.exports = {
   },
 
   moduleNameMapper: {
-    "^@/(.*)$": "<rootDir>/app/$1",
+    "^@/(.*)$": "<rootDir>/$1",
     "\\.(jpg|jpeg|png|gif|svg)$": "<rootDir>/__mocks__/fileMock.js",
     "\\.(mp3|wav|m4a)$": "<rootDir>/__mocks__/fileMock.js",
   },

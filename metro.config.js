@@ -7,11 +7,12 @@ config.resolver.assetExts.push("ogg", "mp3", "wav", "m4a", "aac");
 
 config.resolver.alias = {
   "@": path.resolve(__dirname, "."),
-  "@/assets": path.resolve(__dirname, "assets"),
   "@/app": path.resolve(__dirname, "app"),
-  "@/hooks": path.resolve(__dirname, "app/hooks"),
-  "@/constants": path.resolve(__dirname, "app/constants"),
-  "@/components": path.resolve(__dirname, "app/components"),
+  "@/assets": path.resolve(__dirname, "assets"),
+  "@/hooks": path.resolve(__dirname, "hooks"),
+  "@/constants": path.resolve(__dirname, "constants"),
+  "@/components": path.resolve(__dirname, "components"),
+  "@/data": path.resolve(__dirname, "data"),
 };
 
 module.exports = config;
