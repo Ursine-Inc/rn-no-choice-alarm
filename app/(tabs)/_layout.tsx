@@ -1,5 +1,4 @@
 import { Tabs } from "expo-router";
-import { Platform } from "react-native";
 
 import { HapticTab } from "@/components/HapticTab";
 import { IconSymbol } from "@/components/ui/IconSymbol";
@@ -19,12 +18,9 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            position: "absolute",
-          },
-          default: {},
-        }),
+        tabBarStyle: {
+          position: "absolute",
+        },
       }}
     >
       <Tabs.Screen
@@ -40,16 +36,17 @@ export default function TabLayout() {
         name="active-alarm"
         options={{
           title: "Active Alarm",
-          href: hasActiveAlarm ? "/(tabs)/active-alarm" : null,
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="alarm.fill" color={color} />
           ),
+          href: hasActiveAlarm ? "/(tabs)/active-alarm" : null,
         }}
       />
       <Tabs.Screen
         name="alarms"
         options={{
           title: "Alarms",
+          href: "/(tabs)/alarms",
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="list.bullet" color={color} />
           ),
