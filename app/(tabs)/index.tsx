@@ -21,7 +21,7 @@ import {
 } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
-import styles from "../index-styles";
+import styles from "../../themes/styles/home";
 
 const START_CURSOR_MS = 5000;
 const PLAY_DURATION_MS = 10000;

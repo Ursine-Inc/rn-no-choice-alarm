@@ -4,10 +4,10 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 2,
   },
   stepContainer: {
-    gap: 8,
+    gap: 2,
     marginBottom: 8,
   },
   reactLogo: {
@@ -42,11 +42,26 @@ const styles = StyleSheet.create({
     marginLeft: "10%",
     marginRight: "10%",
     marginTop: 0,
-    marginBottom: 0,
-    flexDirection: "row",
+    marginBottom: 5,
+    flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    gap: 20,
+    gap: 5,
+  },
+  timePickerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-evenly",
+  },
+  timePicker: {
+    width: 100,
+    height: 50,
+  },
+  timePickerSeparator: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: "#000",
+    marginHorizontal: 10,
   },
   alarmInput: {
     fontSize: 25,
@@ -106,10 +121,25 @@ const styles = StyleSheet.create({
   dayContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "space-between",
+    gap: 20,
+    marginTop: 5,
+    marginBottom: 5,
+    paddingHorizontal: 0,
+    width: "100%",
+  },
+  daySection: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
-    marginTop: 20,
-    marginBottom: 10,
+    flex: 1,
+    minWidth: 0,
+  },
+  recurringSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    flexShrink: 0,
   },
   dayInput: {
     fontSize: 18,
@@ -179,13 +209,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  recurringContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    marginBottom: 20,
-  },
+
   audioList: {
     width: "120%",
     marginTop: 5,
