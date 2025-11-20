@@ -15,8 +15,8 @@ A React Native alarm app with a snooze option you have to work for. Get up or su
 
 | Platform | Version | Build        |
 | -------- | ------- | ------------ |
-| iOS      | 1.0.0   | 2025.11.20.1 |
-| Android  | 1.0.0   | 202511201    |
+| iOS      | 1.0.0   | 2025.11.21.1 |
+| Android  | 1.0.0   | 2025112101   |
 
 </div>
 
