@@ -67,7 +67,14 @@ if [ "$IOS_DATE_COMPARABLE" != "$ANDROID_DATE" ]; then
     ERRORS=$((ERRORS + 1))
 fi
 
-if [ "$IOS_INCREMENT" != "$ANDROID_INCREMENT" ]; then
+# Normalize increments: treat leading zeros as insignificant (e.g. iOS '1' == Android '01')
+IOS_INCREMENT_NORM=$(echo "$IOS_INCREMENT" | sed -E 's/^0+//')
+ANDROID_INCREMENT_NORM=$(echo "$ANDROID_INCREMENT" | sed -E 's/^0+//')
+# Empty string -> zero
+if [ -z "$IOS_INCREMENT_NORM" ]; then IOS_INCREMENT_NORM=0; fi
+if [ -z "$ANDROID_INCREMENT_NORM" ]; then ANDROID_INCREMENT_NORM=0; fi
+
+if [ "$IOS_INCREMENT_NORM" != "$ANDROID_INCREMENT_NORM" ]; then
     echo -e "${RED}❌ Version increments don't match! iOS: $IOS_INCREMENT, Android: $ANDROID_INCREMENT${NC}"
     ERRORS=$((ERRORS + 1))
 fi
