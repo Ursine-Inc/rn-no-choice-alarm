@@ -31,8 +31,7 @@
   "submit": {
     "preview": {
       "android": {},
-      "ios": {
-      }
+      "ios": {}
     },
     "production": {
       "android": {},
