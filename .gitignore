@@ -102,3 +102,4 @@ assets/generated-icons/
 docs/internal/
 scripts/internal/
 assets/audio/*/archive/
+*.bak.*

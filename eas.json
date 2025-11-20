@@ -1,6 +1,6 @@
 {
   "cli": {
-    "version": "16.13.4",
+    "version": "16.27.0",
     "appVersionSource": "local"
   },
   "build": {
@@ -31,9 +31,7 @@
   "submit": {
     "preview": {
       "android": {},
-      "ios": {
-        "ascAppId": "com.ursineenterprises.nochoicealarm"
-      }
+      "ios": {}
     },
     "production": {
       "android": {},

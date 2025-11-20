@@ -59,7 +59,7 @@
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@types/react": "~19.0.10",
-    "eas-cli": "16.13.4",
+    "eas-cli": "16.27.0",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~9.2.0",
     "firebase-tools": "^14.9.0",
@@ -85,8 +85,12 @@
   "homepage": "https://github.com/Ursine-Inc/rn-no-choice-alarm#readme",
   "license": "SEE LICENSE IN LICENSE",
   "engines": {
-    "node": ">=18.0.0",
+    "node": ">=18 <23",
     "pnpm": ">=7.0.0"
   },
-  "packageManager": "pnpm@9.4.0+sha512.f549b8a52c9d2b8536762f99c0722205efc5af913e77835dbccc3b0b0b2ca9e7dc8022b78062c17291c48e88749c70ce88eb5a74f1fa8c4bf5e18bb46c8bd83a"
+  "packageManager": "pnpm@9.4.0+sha512.f549b8a52c9d2b8536762f99c0722205efc5af913e77835dbccc3b0b0b2ca9e7dc8022b78062c17291c48e88749c70ce88eb5a74f1fa8c4bf5e18bb46c8bd83a",
+  "volta": {
+    "node": "20.0.0",
+    "pnpm": "9.4.0"
+  }
 }

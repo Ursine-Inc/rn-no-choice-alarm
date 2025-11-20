@@ -1,5 +1,23 @@
 #!/bin/bash
 
+DRY_RUN=0
+while [[ ${1:-} != "" ]]; do
+	case "$1" in
+		--dry-run|-n)
+			DRY_RUN=1
+			shift
+			;;
+		--help|-h)
+			echo "Usage: $0 [--dry-run]" >&2
+			exit 0
+			;;
+		*)
+			echo "Unknown arg: $1" >&2
+			exit 2
+			;;
+	esac
+done
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -79,12 +97,15 @@ if [ "$IOS_INCREMENT_NORM" != "$ANDROID_INCREMENT_NORM" ]; then
     ERRORS=$((ERRORS + 1))
 fi
 
+# Dates must match today's date — treat mismatch as an error
 if [ "$IOS_DATE" != "$TODAY_IOS" ]; then
-    echo -e "${YELLOW}⚠️  Warning: iOS version date ($IOS_DATE) doesn't match today ($TODAY_IOS)${NC}"
+    echo -e "${RED}❌ iOS version date ($IOS_DATE) doesn't match today ($TODAY_IOS). Update before creating PR.${NC}"
+    ERRORS=$((ERRORS + 1))
 fi
 
 if [ "$ANDROID_DATE" != "$TODAY_ANDROID" ]; then
-    echo -e "${YELLOW}⚠️  Warning: Android version date ($ANDROID_DATE) doesn't match today ($TODAY_ANDROID)${NC}"
+    echo -e "${RED}❌ Android version date ($ANDROID_DATE) doesn't match today ($TODAY_ANDROID). Update before creating PR.${NC}"
+    ERRORS=$((ERRORS + 1))
 fi
 
 echo ""
@@ -103,4 +124,9 @@ fi
 echo -e "${GREEN}✅ All version checks passed!${NC}"
 echo ""
 
-exec gh pr create "$@"
+if [ "$DRY_RUN" -eq 1 ]; then
+    echo "Dry run mode — not creating PR. Exiting."
+    exit 0
+else 
+    exec gh pr create "$@"
+fi
