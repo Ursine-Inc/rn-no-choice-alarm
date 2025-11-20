@@ -81,12 +81,19 @@ jobs:
                   pnpm eas build --platform ios --non-interactive --profile preview --wait
               env:
                   EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+            - name: Validate ASC_APP_ID secret
+              run: |
+                  if ! [[ "${{ secrets.ASC_APP_ID }}" =~ ^[0-9]+$ ]]; then
+                    echo "ASC_APP_ID does not look numeric. Please set ASC_APP_ID to the numeric App Store Connect App ID."
+                    exit 1
+                  fi
             - name: Submit to TestFlight
               run: |
                   pnpm eas submit --platform ios --profile preview --non-interactive --latest
               env:
                   EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
                   ASC_APP_ID: ${{ secrets.ASC_APP_ID }}
+                  APPLE_APP_ID: ${{ secrets.ASC_APP_ID }}
                   APPLE_ID: ${{ secrets.APPLE_ID }}
                   APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
             - name: Notify Slack of build status
