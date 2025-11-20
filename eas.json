@@ -32,7 +32,6 @@
     "preview": {
       "android": {},
       "ios": {
-        "ascAppId": "com.ursineenterprises.nochoicealarm"
       }
     },
     "production": {
