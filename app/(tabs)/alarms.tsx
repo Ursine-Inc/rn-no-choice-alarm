@@ -10,7 +10,7 @@ import { Alert, Pressable, Text, View } from "react-native";
 
 import { styles } from "@/themes/styles/alarms";
 
-export const ENABLE_DELETE_ALL = __DEV__ && true; // set to true for local dev
+export const ENABLE_DELETE_ALL = __DEV__ && false;
 
 export default function AlarmsScreen() {
   const { cancelAlarm } = useActiveAlarm();
