@@ -9,6 +9,15 @@ const styles = StyleSheet.create({
     paddingLeft: 6,
     paddingRight: 6,
   },
+  headerImage: {
+    width: "100%",
+    height: 260,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    overflow: "hidden",
+  },
   innerContainer: {
     paddingLeft: 15,
     paddingRight: 15,
@@ -87,6 +96,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-start",
     gap: 5,
+    paddingRight: 50,
+    paddingLeft: 50,
   },
   addButton: {
     padding: 5,
@@ -138,6 +149,8 @@ const styles = StyleSheet.create({
     marginTop: 5,
     marginBottom: 5,
     paddingHorizontal: 0,
+    paddingRight: 25,
+    paddingLeft: 25,
     width: "100%",
   },
   daySection: {
@@ -227,12 +240,12 @@ const styles = StyleSheet.create({
     overflow: "scroll",
     marginTop: 5,
     marginBottom: 0,
-    maxHeight: 65,
+    maxHeight: 105,
   },
   audioItem: {
     backgroundColor: "#f0f0f0",
-    padding: 12,
-    borderBottomWidth: 1,
+    padding: 6,
+    borderBottomWidth: 2,
     borderBottomColor: "#ddd",
     flexDirection: "row",
     alignItems: "center",
@@ -245,7 +258,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#81b0ff",
   },
   audioLabel: {
-    fontSize: 14,
+    fontSize: 16,
     color: "#333",
   },
   audioLabelSelected: {
