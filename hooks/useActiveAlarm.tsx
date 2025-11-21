@@ -18,6 +18,9 @@ interface ActiveAlarmContextType {
   isAlarmKilled: boolean;
   setIsAlarmKilled: (killed: boolean) => void;
   killAlarm: () => void;
+  isAlarmCancelled: boolean;
+  setIsAlarmCancelled: (cancelled: boolean) => void;
+  cancelAlarm: () => void;
   isAlarmCountdownPaused: boolean;
   pauseAlarmCountdown: () => void;
   resumeAlarmCountdown: () => void;
@@ -35,6 +38,7 @@ const ActiveAlarmContext = createContext<ActiveAlarmContextType | undefined>(
 export function ActiveAlarmProvider({ children }: { children: ReactNode }) {
   const [hasActiveAlarm, setHasActiveAlarm] = useState(false);
   const [isAlarmKilled, setIsAlarmKilled] = useState(false);
+  const [isAlarmCancelled, setIsAlarmCancelled] = useState(false);
   const [isAlarmCountdownPaused, setIsAlarmCountdownPaused] = useState(false);
 
   const { combinedMap, collectionsMap } = useMemo(() => {
@@ -80,13 +84,8 @@ export function ActiveAlarmProvider({ children }: { children: ReactNode }) {
   const getAudioSource = (cleanName: string) => {
     const mapping = (combinedMap as Map<string, AudioMapping>).get(cleanName);
     if (mapping) {
-      console.log(
-        'Found audio source for "' + cleanName + '":',
-        mapping.fullFileName
-      );
       return mapping.source;
     }
-    console.error('No audio source found for clean name: "' + cleanName + '"');
     return null;
   };
 
@@ -99,6 +98,11 @@ export function ActiveAlarmProvider({ children }: { children: ReactNode }) {
 
   const killAlarm = () => {
     setIsAlarmKilled(true);
+  };
+
+  const cancelAlarm = () => {
+    setHasActiveAlarm(false);
+    setIsAlarmCancelled(true);
   };
 
   const pauseAlarmCountdown = () => {
@@ -117,6 +121,9 @@ export function ActiveAlarmProvider({ children }: { children: ReactNode }) {
         isAlarmKilled,
         setIsAlarmKilled,
         killAlarm,
+        isAlarmCancelled,
+        setIsAlarmCancelled,
+        cancelAlarm,
         isAlarmCountdownPaused,
         pauseAlarmCountdown,
         resumeAlarmCountdown,

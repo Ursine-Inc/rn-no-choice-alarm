@@ -6,10 +6,13 @@ import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import { useActiveAlarm } from "@/hooks/useActiveAlarm";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { AlarmStorage } from "../../data/AlarmStorage";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const { hasActiveAlarm } = useActiveAlarm();
+  const savedAlarms = AlarmStorage.getAllAlarms();
+  const hasSavedAlarms = savedAlarms.length > 0 || hasActiveAlarm;
 
   return (
     <Tabs
@@ -39,7 +42,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="alarm.fill" color={color} />
           ),
-          href: hasActiveAlarm ? "/(tabs)/active-alarm" : null,
+          href: hasSavedAlarms ? "/(tabs)/active-alarm" : null,
         }}
       />
       <Tabs.Screen
