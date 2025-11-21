@@ -31,6 +31,12 @@ export const AlarmStorage = {
   deleteAlarm: (id: string) => {
     storage.delete(`alarm_${id}`);
   },
+  deleteAll: () => {
+    const keys = storage.getAllKeys().filter((k) => k.startsWith("alarm_"));
+    for (const k of keys) {
+      storage.delete(k);
+    }
+  },
   __clearAll: () => {
     if (process.env.NODE_ENV === "test") {
       storage.clearAll();
