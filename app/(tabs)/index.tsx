@@ -34,15 +34,19 @@ export default function HomeScreen() {
     audioCollections,
     getAudioSource,
     getAudioCollection,
-    hasActiveAlarm,
+    isAlarmCancelled,
+    setIsAlarmCancelled,
   } = useActiveAlarm();
-  const [hour, setHour] = useState(7);
-  const [minutes, setMinutes] = useState(0);
-  const [day, setDay] = useState("Monday");
+  // start with no time selected to make validation explicit
+  const [hour, setHour] = useState<number | null>(null);
+  const [minutes, setMinutes] = useState<number | null>(null);
+  // start with no day selected to make validation explicit
+  const [day, setDay] = useState<string | null>(null);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [isRecurring, setIsRecurring] = useState(false);
   const [isSpeechExpanded, setIsSpeechExpanded] = useState(false);
   const [isMusicExpanded, setIsMusicExpanded] = useState(false);
+
   const [selectedAudio, setSelectedAudio] = useState("");
   const [playingPreview, setPlayingPreview] = useState<string | null>(null);
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
@@ -66,17 +70,6 @@ export default function HomeScreen() {
     : null;
   const selectedBelongsToMusic = selectedCollection === "MUSIC";
   const selectedBelongsToSpeech = selectedCollection === "SPEECH";
-
-  useEffect(() => {
-    return () => {
-      if (sound) {
-        sound.unloadAsync();
-      }
-      if (previewTimeout) {
-        clearTimeout(previewTimeout);
-      }
-    };
-  }, [sound, previewTimeout]);
 
   const cleanupPreview = async () => {
     if (previewTimeout) {
@@ -173,6 +166,14 @@ export default function HomeScreen() {
   };
 
   const handleSave = () => {
+    if (hour === null || minutes === null) {
+      alert("Please select a time for the alarm!");
+      return;
+    }
+    if (day === null) {
+      alert("Please select a day for the alarm!");
+      return;
+    }
     if (!selectedAudio) {
       alert("Please select an alarm sound!");
       return;
@@ -181,13 +182,17 @@ export default function HomeScreen() {
       alert("Selected audio is invalid. Please choose a valid sound.");
       return;
     }
+
+    setIsAlarmCancelled(false);
     setIsAlarmKilled(false);
-    setHasActiveAlarm(false);
+    setHasActiveAlarm(true);
+
     const cleanName = selectedAudio;
     const alarmId = Date.now().toString();
     const timeString = `${String(hour).padStart(2, "0")}:${String(
       minutes
     ).padStart(2, "0")}`;
+
     AlarmStorage.saveAlarm({
       id: alarmId,
       time: timeString,
@@ -196,6 +201,7 @@ export default function HomeScreen() {
       trackIds: [cleanName],
       recurring: isRecurring,
     });
+
     router.push({
       pathname: "/active-alarm",
       params: {
@@ -207,6 +213,34 @@ export default function HomeScreen() {
       },
     });
   };
+
+  useEffect(() => {
+    if (isAlarmCancelled) {
+      stopPreview();
+
+      try {
+        setIsAlarmCancelled(false); // clear the request flag
+      } catch (e) {
+        console.error("Error clearing isAlarmCancelled:", e);
+      }
+
+      try {
+        setIsAlarmKilled(false);
+        setHasActiveAlarm(false);
+      } catch (e) {
+        console.error("Error resetting alarm hook state:", e);
+      }
+    }
+
+    return () => {
+      if (sound) {
+        sound.unloadAsync();
+      }
+      if (previewTimeout) {
+        clearTimeout(previewTimeout);
+      }
+    };
+  }, [sound, previewTimeout]);
 
   return (
     <ParallaxScrollView
@@ -240,8 +274,11 @@ export default function HomeScreen() {
                     onPress={() => setShowTimePicker(true)}
                   >
                     <Text style={styles.dayButtonText}>
-                      {String(hour).padStart(2, "0")}:
-                      {String(minutes).padStart(2, "0")}
+                      {hour === null || minutes === null
+                        ? "--:--"
+                        : `${String(hour).padStart(2, "0")}:${String(
+                            minutes
+                          ).padStart(2, "0")}`}
                     </Text>
                     <Text style={styles.dayButtonArrow}>▼</Text>
                   </Pressable>
@@ -264,13 +301,18 @@ export default function HomeScreen() {
                         </View>
                         <View style={styles.timePickerContainer}>
                           <Picker
-                            selectedValue={hour}
+                            selectedValue={hour ?? -1}
                             onValueChange={(itemValue: number) =>
-                              setHour(itemValue)
+                              setHour(itemValue === -1 ? null : itemValue)
                             }
                             style={styles.timePicker}
                             itemStyle={styles.pickerItem}
                           >
+                            <Picker.Item
+                              key="empty-hour"
+                              label="--"
+                              value={-1}
+                            />
                             {Array.from({ length: 24 }, (_, i) => (
                               <Picker.Item
                                 key={i}
@@ -281,13 +323,18 @@ export default function HomeScreen() {
                           </Picker>
                           <Text style={styles.timePickerSeparator}>:</Text>
                           <Picker
-                            selectedValue={minutes}
+                            selectedValue={minutes ?? -1}
                             onValueChange={(itemValue: number) =>
-                              setMinutes(itemValue)
+                              setMinutes(itemValue === -1 ? null : itemValue)
                             }
                             style={styles.timePicker}
                             itemStyle={styles.pickerItem}
                           >
+                            <Picker.Item
+                              key="empty-min"
+                              label="--"
+                              value={-1}
+                            />
                             {Array.from({ length: 60 }, (_, i) => (
                               <Picker.Item
                                 key={i}
@@ -304,10 +351,17 @@ export default function HomeScreen() {
               ) : (
                 <View style={styles.timePickerContainer}>
                   <Picker
-                    selectedValue={hour}
-                    onValueChange={(itemValue: number) => setHour(itemValue)}
+                    selectedValue={hour ?? -1}
+                    onValueChange={(itemValue: number) =>
+                      setHour(itemValue === -1 ? null : itemValue)
+                    }
                     style={styles.timePicker}
                   >
+                    <Picker.Item
+                      key="empty-hour-android"
+                      label="--"
+                      value={-1}
+                    />
                     {Array.from({ length: 24 }, (_, i) => (
                       <Picker.Item
                         key={i}
@@ -318,10 +372,17 @@ export default function HomeScreen() {
                   </Picker>
                   <Text style={styles.timePickerSeparator}>:</Text>
                   <Picker
-                    selectedValue={minutes}
-                    onValueChange={(itemValue: number) => setMinutes(itemValue)}
+                    selectedValue={minutes ?? -1}
+                    onValueChange={(itemValue: number) =>
+                      setMinutes(itemValue === -1 ? null : itemValue)
+                    }
                     style={styles.timePicker}
                   >
+                    <Picker.Item
+                      key="empty-min-android"
+                      label="--"
+                      value={-1}
+                    />
                     {Array.from({ length: 60 }, (_, i) => (
                       <Picker.Item
                         key={i}
@@ -343,7 +404,7 @@ export default function HomeScreen() {
                     style={styles.dayButton}
                     onPress={() => setShowDayPicker(true)}
                   >
-                    <Text style={styles.dayButtonText}>{day}</Text>
+                    <Text style={styles.dayButtonText}>{day ?? "--"}</Text>
                     <Text style={styles.dayButtonArrow}>▼</Text>
                   </Pressable>
 
@@ -364,13 +425,14 @@ export default function HomeScreen() {
                           </Pressable>
                         </View>
                         <Picker
-                          selectedValue={day}
+                          selectedValue={day ?? ""}
                           onValueChange={(itemValue: string) =>
-                            setDay(itemValue)
+                            setDay(itemValue === "" ? null : itemValue)
                           }
                           style={styles.picker}
                           itemStyle={styles.pickerItem}
                         >
+                          <Picker.Item key="empty-day" label="--" value="" />
                           {daysOfWeek.map((dayName) => (
                             <Picker.Item
                               key={dayName}
@@ -386,10 +448,13 @@ export default function HomeScreen() {
               ) : (
                 <View style={styles.pickerContainer}>
                   <Picker
-                    selectedValue={day}
-                    onValueChange={(itemValue: string) => setDay(itemValue)}
+                    selectedValue={day ?? ""}
+                    onValueChange={(itemValue: string) =>
+                      setDay(itemValue === "" ? null : itemValue)
+                    }
                     style={styles.picker}
                   >
+                    <Picker.Item key="empty-day-android" label="--" value="" />
                     {daysOfWeek.map((dayName) => (
                       <Picker.Item
                         key={dayName}
@@ -618,8 +683,49 @@ export default function HomeScreen() {
                 )}
               </ScrollView>
             )}{" "}
-            <Pressable style={styles.saveButton} onPress={handleSave}>
-              <Text style={styles.saveButtonLabel}>Save Alarm</Text>
+            <Pressable
+              onPress={handleSave}
+              disabled={
+                selectedAudio === "" ||
+                hour === null ||
+                minutes === null ||
+                day === null
+              }
+              accessibilityRole="button"
+              accessibilityState={{
+                disabled:
+                  selectedAudio === "" ||
+                  hour === null ||
+                  minutes === null ||
+                  day === null,
+              }}
+              style={({ pressed }) => [
+                styles.saveButton,
+                (selectedAudio === "" ||
+                  hour === null ||
+                  minutes === null ||
+                  day === null) &&
+                  styles.saveButtonDisabled,
+                pressed &&
+                  selectedAudio !== "" &&
+                  hour !== null &&
+                  minutes !== null &&
+                  day !== null &&
+                  styles.saveButtonPressed,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.saveButtonLabel,
+                  (selectedAudio === "" ||
+                    hour === null ||
+                    minutes === null ||
+                    day === null) &&
+                    styles.saveButtonLabelDisabled,
+                ]}
+              >
+                Save Alarm
+              </Text>
             </Pressable>
           </View>
         </ThemedView>

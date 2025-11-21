@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     borderColor: "#4169e1",
   },
   optionsButtonSelectedMusic: {
-    backgroundColor: "#119a41ff",
+    backgroundColor: "#20cc5cff",
     borderColor: "#ffffffff",
   },
   optionsButtonSelectedSpeech: {
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   saveButton: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: "#119a41ff",
     padding: 15,
     width: "120%",
     marginTop: 0,
@@ -288,6 +288,16 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 18,
     textAlign: "center",
+  },
+  saveButtonDisabled: {
+    backgroundColor: "#bdbdbd",
+  },
+  saveButtonPressed: {
+    opacity: 0.95,
+    transform: [{ scale: 0.995 }],
+  },
+  saveButtonLabelDisabled: {
+    color: "#666666",
   },
   selectedBadgeRow: {
     flexDirection: "row",
