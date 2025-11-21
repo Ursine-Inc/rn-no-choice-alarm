@@ -207,22 +207,18 @@ export default function HomeScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <ThemedView style={styles.innerContainer}>
-        <View style={styles.alarm}>
-          <ThemedText type="subheading">Time</ThemedText>
-          {Platform.OS === "ios" ? (
-            <>
-              <Pressable
-                style={styles.dayButton}
-                onPress={() => setShowTimePicker(true)}
-              >
-                <Text style={styles.dayButtonText}>
-                  {String(hour).padStart(2, "0")}:
-                  {String(minutes).padStart(2, "0")}
-                </Text>
-                <Text style={styles.dayButtonArrow}>▼</Text>
-              </Pressable>
+    <ParallaxScrollView
+      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
+      headerImage={
+        <Image
+          source={require("@/assets/images/splash-screen_2025.jpg")}
+          style={styles.headerImage}
+          contentFit="cover"
+          contentPosition="top"
+        />
+      }
+      noPadding={true}
+    >
 
               <Modal
                 visible={showTimePicker}

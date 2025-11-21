@@ -45,8 +45,10 @@ export default function AlarmsScreen() {
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
       headerImage={
         <Image
-          source={require("@/assets/images/header-image.jpg")}
+          source={require("@/assets/images/splash-screen_2025.jpg")}
           style={styles.headerImage}
+          contentFit="cover"
+          contentPosition="top"
         />
       }
       noPadding={true}
