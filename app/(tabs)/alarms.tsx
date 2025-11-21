@@ -1,45 +1,78 @@
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { type Alarm, AlarmStorage } from "@/data/AlarmStorage";
+import { useActiveAlarm } from "@/hooks/useActiveAlarm";
 import { Image } from "expo-image";
-import { router } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
+import { Alert, Pressable, Text, View } from "react-native";
+
+import { styles } from "@/themes/styles/alarms";
+
+export const ENABLE_DELETE_ALL = __DEV__ && false;
 
 export default function AlarmsScreen() {
-  // TODO: Replace with actual saved alarms from storage
-  const savedAlarms = [
-    {
-      id: "1",
-      hour: "07",
-      minutes: "30",
-      day: "Monday",
-      isRecurring: true,
-      selectedAudio: "Getyoass",
-      isActive: true,
-    },
-    {
-      id: "2",
-      hour: "09",
-      minutes: "00",
-      day: "Wednesday",
-      isRecurring: false,
-      selectedAudio: "Pete",
-      isActive: false,
-    },
-  ];
+  const { cancelAlarm } = useActiveAlarm();
+  const [savedAlarms, setSavedAlarms] = useState<Alarm[]>([]);
 
-  const handleAlarmPress = (alarm: (typeof savedAlarms)[0]) => {
-    // Navigate to active alarm screen with alarm details
+  useFocusEffect(
+    useCallback(() => {
+      const alarms = AlarmStorage.getAllAlarms();
+      setSavedAlarms(alarms);
+    }, [])
+  );
+
+  const handleAlarmPress = (alarm: Alarm) => {
+    const [hour, minutes] = alarm.time.split(":");
+    const selectedAudio = alarm.trackIds[0];
+    if (!selectedAudio) {
+      alert("This alarm is missing a valid sound. Please edit or recreate it.");
+      return;
+    }
     router.push({
       pathname: "/active-alarm",
       params: {
-        hour: alarm.hour,
-        minutes: alarm.minutes,
+        hour,
+        minutes,
         day: alarm.day,
-        isRecurring: alarm.isRecurring.toString(),
-        selectedAudio: alarm.selectedAudio,
+        isRecurring: alarm.recurring.toString(),
+        selectedAudio,
       },
     });
+  };
+
+  const handleDeleteAll = () => {
+    if (!ENABLE_DELETE_ALL) return;
+
+    Alert.alert(
+      "Delete all alarms",
+      "This will permanently delete all alarms and reset the UI state.\n\nAre you sure?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            try {
+              AlarmStorage.deleteAll();
+            } catch (e) {
+              console.error("Error deleting alarms:", e);
+            }
+            try {
+              setSavedAlarms([]);
+            } catch (e) {
+              console.error("Error updating local alarms state:", e);
+            }
+            try {
+              cancelAlarm();
+            } catch (e) {
+              console.error("Error resetting active alarm state:", e);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleCreateNew = () => {
@@ -51,10 +84,13 @@ export default function AlarmsScreen() {
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
       headerImage={
         <Image
-          source={require("@/assets/images/header-image.jpg")}
+          source={require("@/assets/images/splash-screen_2025.jpg")}
           style={styles.headerImage}
+          contentFit="cover"
+          contentPosition="top"
         />
       }
+      noPadding={true}
     >
       <ThemedView style={styles.container}>
         <ThemedText type="title" style={styles.title}>
@@ -73,188 +109,141 @@ export default function AlarmsScreen() {
         ) : (
           <>
             <View style={styles.alarmsList}>
-              {savedAlarms.map((alarm) => (
-                <Pressable
-                  key={alarm.id}
-                  style={[
-                    styles.alarmCard,
-                    !alarm.isActive && styles.alarmCardInactive,
-                  ]}
-                  onPress={() => handleAlarmPress(alarm)}
-                >
-                  <View style={styles.alarmHeader}>
-                    <Text
-                      style={[
-                        styles.alarmTime,
-                        !alarm.isActive && styles.alarmTimeInactive,
-                      ]}
-                    >
-                      {alarm.hour}:{alarm.minutes}
-                    </Text>
-                    <View
-                      style={[
-                        styles.statusBadge,
-                        alarm.isActive
-                          ? styles.statusBadgeActive
-                          : styles.statusBadgeInactive,
-                      ]}
-                    >
-                      <Text style={styles.statusText}>
-                        {alarm.isActive ? "Active" : "Inactive"}
+              {savedAlarms.map((alarm) => {
+                const [hour, minutes] = alarm.time.split(":");
+                return (
+                  <Pressable
+                    key={alarm.id}
+                    style={[
+                      styles.alarmCard,
+                      !alarm.enabled && styles.alarmCardInactive,
+                    ]}
+                    onPress={() => handleAlarmPress(alarm)}
+                  >
+                    <View style={styles.alarmHeader}>
+                      <Text
+                        style={[
+                          styles.alarmTime,
+                          !alarm.enabled && styles.alarmTimeInactive,
+                        ]}
+                      >
+                        {hour}:{minutes}
                       </Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.alarmDetails}>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>📅</Text>
-                      <Text style={styles.detailValue}>{alarm.day}</Text>
-                    </View>
-
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>🔁</Text>
-                      <Text style={styles.detailValue}>
-                        {alarm.isRecurring ? "Recurring" : "One-time"}
-                      </Text>
-                    </View>
-
-                    {alarm.selectedAudio && (
-                      <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>🔊</Text>
-                        <Text
-                          style={styles.detailValue}
-                          numberOfLines={1}
-                          ellipsizeMode="tail"
+                      <View
+                        style={{ flexDirection: "row", alignItems: "center" }}
+                      >
+                        <View
+                          style={[
+                            styles.statusBadge,
+                            alarm.enabled
+                              ? styles.statusBadgeActive
+                              : styles.statusBadgeInactive,
+                          ]}
                         >
-                          {alarm.selectedAudio}
+                          <Text style={styles.statusText}>
+                            {alarm.enabled ? "Active" : "Inactive"}
+                          </Text>
+                        </View>
+
+                        <Pressable
+                          onPress={() => {
+                            Alert.alert(
+                              "Delete alarm",
+                              "Permanently delete this alarm?",
+                              [
+                                { text: "Cancel", style: "cancel" },
+                                {
+                                  text: "Delete",
+                                  style: "destructive",
+                                  onPress: () => {
+                                    try {
+                                      AlarmStorage.deleteAlarm(alarm.id);
+                                    } catch (e) {
+                                      console.error("Error deleting alarm:", e);
+                                    }
+                                    try {
+                                      setSavedAlarms((prev) =>
+                                        prev.filter((a) => a.id !== alarm.id)
+                                      );
+                                    } catch (e) {
+                                      console.error(
+                                        "Error updating savedAlarms after delete:",
+                                        e
+                                      );
+                                    }
+                                    try {
+                                      cancelAlarm();
+                                    } catch (e) {
+                                      // ignore
+                                    }
+                                  },
+                                },
+                              ]
+                            );
+                          }}
+                          style={{
+                            marginLeft: 10,
+                            paddingVertical: 6,
+                            paddingHorizontal: 10,
+                            backgroundColor: "#F8D7DA",
+                            borderRadius: 8,
+                          }}
+                        >
+                          <Text style={{ color: "#B71C1C", fontWeight: "700" }}>
+                            Delete
+                          </Text>
+                        </Pressable>
+                      </View>
+                    </View>
+
+                    <View style={styles.alarmDetails}>
+                      <View style={styles.detailRow}>
+                        <Text style={styles.detailLabel}>📅</Text>
+                        <Text style={styles.detailValue}>{alarm.day}</Text>
+                      </View>
+
+                      <View style={styles.detailRow}>
+                        <Text style={styles.detailLabel}>🔁</Text>
+                        <Text style={styles.detailValue}>
+                          {alarm.recurring ? "Recurring" : "One-time"}
                         </Text>
                       </View>
-                    )}
-                  </View>
-                </Pressable>
-              ))}
-            </View>
 
+                      {alarm.trackIds.length > 0 && (
+                        <View style={styles.detailRow}>
+                          <Text style={styles.detailLabel}>🔊</Text>
+                          <Text
+                            style={styles.detailValue}
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                          >
+                            {alarm.trackIds[0]}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
             <Pressable style={styles.createButton} onPress={handleCreateNew}>
               <Text style={styles.createButtonText}>+ New Alarm</Text>
             </Pressable>
+            {ENABLE_DELETE_ALL && (
+              <Pressable
+                style={styles.deleteAllButton}
+                onPress={handleDeleteAll}
+                accessibilityRole="button"
+                accessibilityLabel="Delete all alarms"
+              >
+                <Text style={styles.deleteAllLabel}>
+                  Delete all alarms (dev)
+                </Text>
+              </Pressable>
+            )}
           </>
         )}
       </ThemedView>
     </ParallaxScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-  },
-  headerImage: {
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    height: "100%",
-    width: "100%",
-    position: "absolute",
-    top: 0,
-    left: 0,
-  },
-  title: {
-    textAlign: "center",
-    marginBottom: 30,
-    fontSize: 28,
-  },
-  emptyContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 60,
-  },
-  emptyText: {
-    fontSize: 16,
-    textAlign: "center",
-    marginBottom: 20,
-    opacity: 0.6,
-  },
-  alarmsList: {
-    gap: 15,
-    marginBottom: 20,
-  },
-  alarmCard: {
-    backgroundColor: "#fff",
-    borderRadius: 15,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    borderLeftWidth: 4,
-    borderLeftColor: "#4CAF50",
-  },
-  alarmCardInactive: {
-    opacity: 0.6,
-    borderLeftColor: "#999",
-  },
-  alarmHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 15,
-  },
-  alarmTime: {
-    fontSize: 48,
-    fontWeight: "bold",
-    color: "#4CAF50",
-  },
-  alarmTimeInactive: {
-    color: "#999",
-  },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  statusBadgeActive: {
-    backgroundColor: "#E8F5E9",
-  },
-  statusBadgeInactive: {
-    backgroundColor: "#f0f0f0",
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#333",
-  },
-  alarmDetails: {
-    gap: 10,
-  },
-  detailRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  detailLabel: {
-    fontSize: 16,
-    width: 24,
-  },
-  detailValue: {
-    fontSize: 14,
-    color: "#666",
-    flex: 1,
-  },
-  createButton: {
-    backgroundColor: "#4CAF50",
-    padding: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  createButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});

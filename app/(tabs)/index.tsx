@@ -1,14 +1,10 @@
 import { Picker } from "@react-native-picker/picker";
-import { Image } from "expo-image";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 
-import ParallaxScrollView from "@/components/ParallaxScrollView";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { PreviewAnimation } from "@/components/player/preview-animation";
-import { useActiveAlarm } from "@/hooks/useActiveAlarm";
+import { AlarmStorage } from "@/data/AlarmStorage";
 import { Audio } from "expo-av";
-import { router } from "expo-router";
+import { Image } from "expo-image";
 import {
   Modal,
   Platform,
@@ -16,19 +12,21 @@ import {
   ScrollView,
   Switch,
   Text,
-  TextInput,
   View,
 } from "react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { ThemedText } from "../../components/ThemedText";
+import { ThemedView } from "../../components/ThemedView";
+import { PreviewAnimation } from "../../components/player/preview-animation";
+import { useActiveAlarm } from "../../hooks/useActiveAlarm";
 
-import styles from "../index-styles";
+import ParallaxScrollView from "@/components/ParallaxScrollView";
+import styles from "../../themes/styles/home";
 
 const START_CURSOR_MS = 5000;
 const PLAY_DURATION_MS = 10000;
 const TOTAL_PREVIEW_DURATION_MS = START_CURSOR_MS + PLAY_DURATION_MS;
 
 export default function HomeScreen() {
-  const touch = Gesture.Tap();
   const {
     setHasActiveAlarm,
     setIsAlarmKilled,
@@ -36,13 +34,19 @@ export default function HomeScreen() {
     audioCollections,
     getAudioSource,
     getAudioCollection,
+    isAlarmCancelled,
+    setIsAlarmCancelled,
   } = useActiveAlarm();
-  const [hour, setHour] = useState("");
-  const [minutes, setMinutes] = useState("");
-  const [day, setDay] = useState("Monday");
+  // start with no time selected to make validation explicit
+  const [hour, setHour] = useState<number | null>(null);
+  const [minutes, setMinutes] = useState<number | null>(null);
+  // start with no day selected to make validation explicit
+  const [day, setDay] = useState<string | null>(null);
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [isRecurring, setIsRecurring] = useState(false);
   const [isSpeechExpanded, setIsSpeechExpanded] = useState(false);
   const [isMusicExpanded, setIsMusicExpanded] = useState(false);
+
   const [selectedAudio, setSelectedAudio] = useState("");
   const [playingPreview, setPlayingPreview] = useState<string | null>(null);
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
@@ -66,17 +70,6 @@ export default function HomeScreen() {
     : null;
   const selectedBelongsToMusic = selectedCollection === "MUSIC";
   const selectedBelongsToSpeech = selectedCollection === "SPEECH";
-
-  useEffect(() => {
-    return () => {
-      if (sound) {
-        sound.unloadAsync();
-      }
-      if (previewTimeout) {
-        clearTimeout(previewTimeout);
-      }
-    };
-  }, [sound, previewTimeout]);
 
   const cleanupPreview = async () => {
     if (previewTimeout) {
@@ -173,30 +166,47 @@ export default function HomeScreen() {
   };
 
   const handleSave = () => {
-    if (!hour || !minutes) {
-      alert("Please set hour and minutes!");
+    if (hour === null || minutes === null) {
+      alert("Please select a time for the alarm!");
       return;
     }
-
+    if (day === null) {
+      alert("Please select a day for the alarm!");
+      return;
+    }
     if (!selectedAudio) {
       alert("Please select an alarm sound!");
       return;
     }
+    if (!audioMap.has(selectedAudio)) {
+      alert("Selected audio is invalid. Please choose a valid sound.");
+      return;
+    }
 
+    setIsAlarmCancelled(false);
     setIsAlarmKilled(false);
     setHasActiveAlarm(true);
 
     const cleanName = selectedAudio;
-    if (!audioMap.get(cleanName)) {
-      alert("Selected audio not found");
-      return;
-    }
+    const alarmId = Date.now().toString();
+    const timeString = `${String(hour).padStart(2, "0")}:${String(
+      minutes
+    ).padStart(2, "0")}`;
+
+    AlarmStorage.saveAlarm({
+      id: alarmId,
+      time: timeString,
+      day,
+      enabled: true,
+      trackIds: [cleanName],
+      recurring: isRecurring,
+    });
 
     router.push({
       pathname: "/active-alarm",
       params: {
-        hour,
-        minutes,
+        hour: String(hour).padStart(2, "0"),
+        minutes: String(minutes).padStart(2, "0"),
         day,
         isRecurring: isRecurring.toString(),
         selectedAudio: cleanName,
@@ -204,42 +214,189 @@ export default function HomeScreen() {
     });
   };
 
+  useEffect(() => {
+    if (isAlarmCancelled) {
+      stopPreview();
+
+      try {
+        setIsAlarmCancelled(false); // clear the request flag
+      } catch (e) {
+        console.error("Error clearing isAlarmCancelled:", e);
+      }
+
+      try {
+        setIsAlarmKilled(false);
+        setHasActiveAlarm(false);
+      } catch (e) {
+        console.error("Error resetting alarm hook state:", e);
+      }
+    }
+
+    return () => {
+      if (sound) {
+        sound.unloadAsync();
+      }
+      if (previewTimeout) {
+        clearTimeout(previewTimeout);
+      }
+    };
+  }, [sound, previewTimeout]);
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
       headerImage={
         <Image
-          source={require("@/assets/images/header-image.jpg")}
-          style={styles.reactLogo}
+          source={require("@/assets/images/splash-screen_2025.jpg")}
+          style={styles.headerImage}
+          contentFit="cover"
+          contentPosition="top"
         />
       }
+      noPadding={true}
     >
       <ThemedView>
-        <GestureDetector gesture={touch}>
-          <ThemedView>
-            <View style={styles.alarm}>
-              <ThemedText type="subtitle">Hour</ThemedText>
-              <TextInput
-                style={styles.alarmInput}
-                placeholder="00"
-                keyboardType="number-pad"
-                returnKeyType="done"
-                value={hour}
-                onChangeText={setHour}
-                maxLength={2}
-              />
-              <ThemedText type="subtitle">Minutes</ThemedText>
-              <TextInput
-                style={styles.alarmInput}
-                placeholder="00"
-                keyboardType="number-pad"
-                returnKeyType="done"
-                value={minutes}
-                onChangeText={setMinutes}
-                maxLength={2}
-              />
+        <ThemedView>
+          <View style={styles.alarm}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                width: "100%",
+              }}
+            >
+              <ThemedText type="subtitle">Time</ThemedText>
+              {Platform.OS === "ios" ? (
+                <>
+                  <Pressable
+                    style={styles.dayButton}
+                    onPress={() => setShowTimePicker(true)}
+                  >
+                    <Text style={styles.dayButtonText}>
+                      {hour === null || minutes === null
+                        ? "--:--"
+                        : `${String(hour).padStart(2, "0")}:${String(
+                            minutes
+                          ).padStart(2, "0")}`}
+                    </Text>
+                    <Text style={styles.dayButtonArrow}>▼</Text>
+                  </Pressable>
+
+                  <Modal
+                    visible={showTimePicker}
+                    transparent={true}
+                    animationType="slide"
+                  >
+                    <Pressable
+                      style={styles.modalOverlay}
+                      onPress={() => setShowTimePicker(false)}
+                    >
+                      <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                          <ThemedText type="subtitle">Select Time</ThemedText>
+                          <Pressable onPress={() => setShowTimePicker(false)}>
+                            <Text style={styles.doneButton}>Done</Text>
+                          </Pressable>
+                        </View>
+                        <View style={styles.timePickerContainer}>
+                          <Picker
+                            selectedValue={hour ?? -1}
+                            onValueChange={(itemValue: number) =>
+                              setHour(itemValue === -1 ? null : itemValue)
+                            }
+                            style={styles.timePicker}
+                            itemStyle={styles.pickerItem}
+                          >
+                            <Picker.Item
+                              key="empty-hour"
+                              label="--"
+                              value={-1}
+                            />
+                            {Array.from({ length: 24 }, (_, i) => (
+                              <Picker.Item
+                                key={i}
+                                label={String(i).padStart(2, "0")}
+                                value={i}
+                              />
+                            ))}
+                          </Picker>
+                          <Text style={styles.timePickerSeparator}>:</Text>
+                          <Picker
+                            selectedValue={minutes ?? -1}
+                            onValueChange={(itemValue: number) =>
+                              setMinutes(itemValue === -1 ? null : itemValue)
+                            }
+                            style={styles.timePicker}
+                            itemStyle={styles.pickerItem}
+                          >
+                            <Picker.Item
+                              key="empty-min"
+                              label="--"
+                              value={-1}
+                            />
+                            {Array.from({ length: 60 }, (_, i) => (
+                              <Picker.Item
+                                key={i}
+                                label={String(i).padStart(2, "0")}
+                                value={i}
+                              />
+                            ))}
+                          </Picker>
+                        </View>
+                      </View>
+                    </Pressable>
+                  </Modal>
+                </>
+              ) : (
+                <View style={styles.timePickerContainer}>
+                  <Picker
+                    selectedValue={hour ?? -1}
+                    onValueChange={(itemValue: number) =>
+                      setHour(itemValue === -1 ? null : itemValue)
+                    }
+                    style={styles.timePicker}
+                  >
+                    <Picker.Item
+                      key="empty-hour-android"
+                      label="--"
+                      value={-1}
+                    />
+                    {Array.from({ length: 24 }, (_, i) => (
+                      <Picker.Item
+                        key={i}
+                        label={String(i).padStart(2, "0")}
+                        value={i}
+                      />
+                    ))}
+                  </Picker>
+                  <Text style={styles.timePickerSeparator}>:</Text>
+                  <Picker
+                    selectedValue={minutes ?? -1}
+                    onValueChange={(itemValue: number) =>
+                      setMinutes(itemValue === -1 ? null : itemValue)
+                    }
+                    style={styles.timePicker}
+                  >
+                    <Picker.Item
+                      key="empty-min-android"
+                      label="--"
+                      value={-1}
+                    />
+                    {Array.from({ length: 60 }, (_, i) => (
+                      <Picker.Item
+                        key={i}
+                        label={String(i).padStart(2, "0")}
+                        value={i}
+                      />
+                    ))}
+                  </Picker>
+                </View>
+              )}
             </View>
-            <View style={styles.dayContainer}>
+          </View>
+          <View style={styles.dayContainer}>
+            <View style={styles.daySection}>
               <ThemedText type="subtitle">Day</ThemedText>
               {Platform.OS === "ios" ? (
                 <>
@@ -247,7 +404,7 @@ export default function HomeScreen() {
                     style={styles.dayButton}
                     onPress={() => setShowDayPicker(true)}
                   >
-                    <Text style={styles.dayButtonText}>{day}</Text>
+                    <Text style={styles.dayButtonText}>{day ?? "--"}</Text>
                     <Text style={styles.dayButtonArrow}>▼</Text>
                   </Pressable>
 
@@ -268,13 +425,14 @@ export default function HomeScreen() {
                           </Pressable>
                         </View>
                         <Picker
-                          selectedValue={day}
+                          selectedValue={day ?? ""}
                           onValueChange={(itemValue: string) =>
-                            setDay(itemValue)
+                            setDay(itemValue === "" ? null : itemValue)
                           }
                           style={styles.picker}
                           itemStyle={styles.pickerItem}
                         >
+                          <Picker.Item key="empty-day" label="--" value="" />
                           {daysOfWeek.map((dayName) => (
                             <Picker.Item
                               key={dayName}
@@ -290,10 +448,13 @@ export default function HomeScreen() {
               ) : (
                 <View style={styles.pickerContainer}>
                   <Picker
-                    selectedValue={day}
-                    onValueChange={(itemValue: string) => setDay(itemValue)}
+                    selectedValue={day ?? ""}
+                    onValueChange={(itemValue: string) =>
+                      setDay(itemValue === "" ? null : itemValue)
+                    }
                     style={styles.picker}
                   >
+                    <Picker.Item key="empty-day-android" label="--" value="" />
                     {daysOfWeek.map((dayName) => (
                       <Picker.Item
                         key={dayName}
@@ -306,7 +467,7 @@ export default function HomeScreen() {
               )}
             </View>
 
-            <View style={styles.recurringContainer}>
+            <View style={styles.recurringSection}>
               <ThemedText type="subtitle">Recurring</ThemedText>
               <Switch
                 value={isRecurring}
@@ -315,148 +476,147 @@ export default function HomeScreen() {
                 thumbColor={isRecurring ? "#4CAF50" : "#f4f3f4"}
               />
             </View>
-
-            <View style={styles.options}>
-              <ThemedText type="subheading">Select soundtrack</ThemedText>
-              {selectedAudio ? (
-                <View style={styles.selectedBadgeRow}>
-                  <View
-                    style={[
-                      styles.selectedBadge,
-                      selectedBelongsToMusic && styles.selectedBadgeMusic,
-                      selectedBelongsToSpeech && styles.selectedBadgeSpeech,
-                    ]}
-                  >
-                    <Text style={styles.selectedBadgeText}>
-                      {selectedBelongsToMusic
-                        ? "Music"
-                        : selectedBelongsToSpeech
-                        ? "Speech"
-                        : "Other"}
-                    </Text>
-                  </View>
-                  <Text style={styles.audioLabel}>{selectedAudio}</Text>
+          </View>
+          <View style={styles.options}>
+            <ThemedText type="subtitle">Select soundtrack</ThemedText>
+            {selectedAudio ? (
+              <View style={styles.selectedBadgeRow}>
+                <View
+                  style={[
+                    styles.selectedBadge,
+                    selectedBelongsToMusic && styles.selectedBadgeMusic,
+                    selectedBelongsToSpeech && styles.selectedBadgeSpeech,
+                  ]}
+                >
+                  <Text style={styles.selectedBadgeText}>
+                    {selectedBelongsToMusic
+                      ? "Music"
+                      : selectedBelongsToSpeech
+                      ? "Speech"
+                      : "Other"}
+                  </Text>
                 </View>
-              ) : null}
-              {(() => {
-                const selectedBelongsToMusic = selectedAudio
-                  ? audioCollections.get("MUSIC")?.has(selectedAudio) ?? false
-                  : false;
-                const selectedBelongsToSpeech = selectedAudio
-                  ? audioCollections.get("SPEECH")?.has(selectedAudio) ?? false
-                  : false;
+                <Text style={styles.audioLabel}>{selectedAudio}</Text>
+              </View>
+            ) : null}
+            {(() => {
+              const selectedBelongsToMusic = selectedAudio
+                ? audioCollections.get("MUSIC")?.has(selectedAudio) ?? false
+                : false;
+              const selectedBelongsToSpeech = selectedAudio
+                ? audioCollections.get("SPEECH")?.has(selectedAudio) ?? false
+                : false;
 
-                return (
-                  <>
-                    <Pressable
-                      style={[
-                        styles.optionsButton,
-                        isMusicExpanded && styles.optionsButtonSelectedMusic,
-                        selectedBelongsToMusic &&
-                          styles.optionsButtonSelectedMusic,
-                      ]}
-                      onPress={() => setIsMusicExpanded(!isMusicExpanded)}
+              return (
+                <>
+                  <Pressable
+                    style={[
+                      styles.optionsButton,
+                      isMusicExpanded && styles.optionsButtonSelectedMusic,
+                      selectedBelongsToMusic &&
+                        styles.optionsButtonSelectedMusic,
+                    ]}
+                    onPress={() => setIsMusicExpanded(!isMusicExpanded)}
+                  >
+                    <Text style={styles.label}>
+                      Music {isMusicExpanded ? "▲" : "▼"}
+                    </Text>
+                  </Pressable>
+                  {isMusicExpanded && (
+                    <ScrollView
+                      style={styles.audioList}
+                      nestedScrollEnabled={true}
                     >
-                      <Text style={styles.label}>
-                        Music {isMusicExpanded ? "▲" : "▼"}
-                      </Text>
-                    </Pressable>
-                    {isMusicExpanded && (
-                      <ScrollView
-                        style={styles.audioList}
-                        nestedScrollEnabled={true}
-                      >
-                        {Array.from(
-                          audioCollections.get("MUSIC")?.values() ?? []
-                        ).map((mapping) => {
-                          const cleanName =
-                            mapping &&
-                            typeof mapping === "object" &&
-                            "cleanName" in mapping
-                              ? // @ts-ignore
-                                mapping.cleanName
-                              : String(mapping);
+                      {Array.from(
+                        audioCollections.get("MUSIC")?.values() ?? []
+                      ).map((mapping) => {
+                        const cleanName =
+                          mapping &&
+                          typeof mapping === "object" &&
+                          "cleanName" in mapping
+                            ? // @ts-ignore
+                              mapping.cleanName
+                            : String(mapping);
 
-                          return (
-                            <View
-                              key={cleanName}
-                              style={[
-                                styles.audioItem,
-                                selectedAudio === cleanName &&
-                                  styles.audioItemSelected,
-                              ]}
+                        return (
+                          <View
+                            key={cleanName}
+                            style={[
+                              styles.audioItem,
+                              selectedAudio === cleanName &&
+                                styles.audioItemSelected,
+                            ]}
+                          >
+                            <Pressable
+                              style={styles.audioItemContent}
+                              onPress={() => {
+                                setSelectedAudio(cleanName);
+                                setIsMusicExpanded(false);
+                              }}
                             >
+                              <Text
+                                style={[
+                                  styles.audioLabel,
+                                  selectedAudio === cleanName &&
+                                    styles.audioLabelSelected,
+                                ]}
+                              >
+                                {cleanName}
+                              </Text>
+                            </Pressable>
+                            <View style={{ position: "relative" }}>
                               <Pressable
-                                style={styles.audioItemContent}
+                                style={styles.previewButton}
                                 onPress={() => {
-                                  setSelectedAudio(cleanName);
-                                  setIsMusicExpanded(false);
+                                  if (
+                                    playingPreview === cleanName &&
+                                    isPreviewPlaying
+                                  ) {
+                                    stopPreview();
+                                  } else {
+                                    playPreview(cleanName);
+                                  }
                                 }}
                               >
-                                <Text
-                                  style={[
-                                    styles.audioLabel,
-                                    selectedAudio === cleanName &&
-                                      styles.audioLabelSelected,
-                                  ]}
-                                >
-                                  {cleanName}
+                                <Text style={styles.previewButtonText}>
+                                  {playingPreview === cleanName &&
+                                  isPreviewPlaying
+                                    ? "⏸"
+                                    : "▶️"}
                                 </Text>
                               </Pressable>
-                              <View style={{ position: "relative" }}>
-                                <Pressable
-                                  style={styles.previewButton}
-                                  onPress={() => {
-                                    if (
-                                      playingPreview === cleanName &&
-                                      isPreviewPlaying
-                                    ) {
-                                      stopPreview();
-                                    } else {
-                                      playPreview(cleanName);
-                                    }
-                                  }}
-                                >
-                                  <Text style={styles.previewButtonText}>
-                                    {playingPreview === cleanName &&
-                                    isPreviewPlaying
-                                      ? "⏸"
-                                      : "▶️"}
-                                  </Text>
-                                </Pressable>
-                                {playingPreview === cleanName &&
-                                  isPreviewPlaying && (
-                                    <PreviewAnimation
-                                      previewProgress={previewProgress}
-                                    />
-                                  )}
-                              </View>
+                              {playingPreview === cleanName &&
+                                isPreviewPlaying && (
+                                  <PreviewAnimation
+                                    previewProgress={previewProgress}
+                                  />
+                                )}
                             </View>
-                          );
-                        })}
-                      </ScrollView>
-                    )}
+                          </View>
+                        );
+                      })}
+                    </ScrollView>
+                  )}
 
-                    <Pressable
-                      style={[
-                        styles.optionsButton,
-                        selectedBelongsToSpeech &&
-                          styles.optionsButtonSelectedSpeech,
-                      ]}
-                      onPress={() => setIsSpeechExpanded(!isSpeechExpanded)}
-                    >
-                      <Text style={styles.label}>
-                        Speech {isSpeechExpanded ? "▲" : "▼"}
-                      </Text>
-                    </Pressable>
-                  </>
-                );
-              })()}
-              {isSpeechExpanded && (
-                <ScrollView style={styles.audioList} nestedScrollEnabled={true}>
-                  {Array.from(
-                    audioCollections.get("SPEECH")?.values() ?? []
-                  ).map((mapping) => {
+                  <Pressable
+                    style={[
+                      styles.optionsButton,
+                      selectedBelongsToSpeech &&
+                        styles.optionsButtonSelectedSpeech,
+                    ]}
+                    onPress={() => setIsSpeechExpanded(!isSpeechExpanded)}
+                  >
+                    <Text style={styles.label}>
+                      Speech {isSpeechExpanded ? "▲" : "▼"}
+                    </Text>
+                  </Pressable>
+                </>
+              );
+            })()}
+            {isSpeechExpanded && (
+              <ScrollView style={styles.audioList} nestedScrollEnabled={true}>
+                {Array.from(audioCollections.get("SPEECH")?.values() ?? []).map(
+                  (mapping) => {
                     const cleanName =
                       mapping &&
                       typeof mapping === "object" &&
@@ -519,15 +679,56 @@ export default function HomeScreen() {
                         </View>
                       </View>
                     );
-                  })}
-                </ScrollView>
-              )}{" "}
-              <Pressable style={styles.saveButton} onPress={handleSave}>
-                <Text style={styles.saveButtonLabel}>Save Alarm</Text>
-              </Pressable>
-            </View>
-          </ThemedView>
-        </GestureDetector>
+                  }
+                )}
+              </ScrollView>
+            )}{" "}
+            <Pressable
+              onPress={handleSave}
+              disabled={
+                selectedAudio === "" ||
+                hour === null ||
+                minutes === null ||
+                day === null
+              }
+              accessibilityRole="button"
+              accessibilityState={{
+                disabled:
+                  selectedAudio === "" ||
+                  hour === null ||
+                  minutes === null ||
+                  day === null,
+              }}
+              style={({ pressed }) => [
+                styles.saveButton,
+                (selectedAudio === "" ||
+                  hour === null ||
+                  minutes === null ||
+                  day === null) &&
+                  styles.saveButtonDisabled,
+                pressed &&
+                  selectedAudio !== "" &&
+                  hour !== null &&
+                  minutes !== null &&
+                  day !== null &&
+                  styles.saveButtonPressed,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.saveButtonLabel,
+                  (selectedAudio === "" ||
+                    hour === null ||
+                    minutes === null ||
+                    day === null) &&
+                    styles.saveButtonLabelDisabled,
+                ]}
+              >
+                Save Alarm
+              </Text>
+            </Pressable>
+          </View>
+        </ThemedView>
       </ThemedView>
     </ParallaxScrollView>
   );

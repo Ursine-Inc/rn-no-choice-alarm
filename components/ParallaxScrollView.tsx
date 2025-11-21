@@ -1,5 +1,5 @@
 import type { PropsWithChildren, ReactElement } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet } from "react-native";
 import Animated, {
   interpolate,
   useAnimatedRef,
@@ -7,9 +7,9 @@ import Animated, {
   useScrollViewOffset,
 } from "react-native-reanimated";
 
-import { ThemedView } from "@/components/ThemedView";
 import { useBottomTabOverflow } from "@/components/ui/TabBarBackground";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { ThemedView } from "./ThemedView";
 
 const HEADER_HEIGHT = 250;
 
@@ -66,9 +66,6 @@ export default function ParallaxScrollView({
           ]}
         >
           {headerImage}
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitle}>KooM!</Text>
-          </View>
         </Animated.View>
         <ThemedView
           style={[styles.content, noPadding && styles.contentNoPadding]}
@@ -95,7 +92,10 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   contentNoPadding: {
-    padding: 0,
+    paddingTop: 10,
+    paddingBottom: 0,
+    paddingLeft: 0,
+    paddingRight: 0,
   },
   headerTitleContainer: {
     position: "absolute",

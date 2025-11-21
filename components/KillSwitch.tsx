@@ -1,4 +1,3 @@
-import { useActiveAlarm } from "@/hooks/useActiveAlarm";
 import { Image } from "expo-image";
 import { useRef, useState } from "react";
 import { Pressable, Text as RNText, StyleSheet, View } from "react-native";
@@ -10,6 +9,7 @@ import Svg, {
   Rect,
   Stop,
 } from "react-native-svg";
+import { useActiveAlarm } from "../hooks/useActiveAlarm";
 
 export function KillSwitch() {
   const {

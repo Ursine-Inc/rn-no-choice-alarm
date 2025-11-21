@@ -1,9 +1,9 @@
-| Android  | 1.0.0   | 2025112102 || iOS      | 1.0.0   | 2025.11.21.2 |<div align="center">
-  <img src="assets/images/splash-screen_2025.jpg" alt="KooM! Splash Screen" width="300">
-  
-  # KooM!
-  
-  ## The Alarm App You Can't Snooze!
+| Android | 1.0.0 | 2025112102 || iOS | 1.0.0 | 2025.11.21.2 |<div align="center">
+<img src="assets/images/splash-screen_2025.jpg" alt="KooM! Splash Screen" width="300">
+
+# KooM!
+
+## The Alarm App You Can't Snooze!
 
 A React Native alarm app with a snooze option you have to work for. Get up or suffer the consequences!
 
@@ -15,8 +15,8 @@ A React Native alarm app with a snooze option you have to work for. Get up or su
 
 | Platform | Version | Build        |
 | -------- | ------- | ------------ |
-| iOS      | 1.0.0   | 2025.11.21.1 |
-| Android  | 1.0.0   | 2025112101   |
+| iOS      | 1.0.0   | 2025.11.21.2 |
+| Android  | 1.0.0   | 2025112102   |
 
 </div>
 

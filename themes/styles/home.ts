@@ -1,13 +1,34 @@
 import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f0f8ff",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingLeft: 6,
+    paddingRight: 6,
+  },
+  headerImage: {
+    width: "100%",
+    height: 260,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    overflow: "hidden",
+  },
+  innerContainer: {
+    paddingLeft: 15,
+    paddingRight: 15,
+  },
   titleContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 2,
   },
   stepContainer: {
-    gap: 8,
+    gap: 2,
     marginBottom: 8,
   },
   reactLogo: {
@@ -42,11 +63,26 @@ const styles = StyleSheet.create({
     marginLeft: "10%",
     marginRight: "10%",
     marginTop: 0,
-    marginBottom: 0,
-    flexDirection: "row",
+    marginBottom: 5,
+    flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    gap: 20,
+    gap: 5,
+  },
+  timePickerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-evenly",
+  },
+  timePicker: {
+    width: 100,
+    height: 50,
+  },
+  timePickerSeparator: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: "#000",
+    marginHorizontal: 10,
   },
   alarmInput: {
     fontSize: 25,
@@ -54,12 +90,15 @@ const styles = StyleSheet.create({
   },
   options: {
     flex: 1,
-    marginTop: 0,
+    marginTop: 15,
     marginBottom: 0,
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
+    justifyContent: "flex-start",
+    gap: 5,
+    paddingRight: 50,
+    paddingLeft: 50,
+    paddingBottom: 0,
   },
   addButton: {
     padding: 5,
@@ -88,12 +127,12 @@ const styles = StyleSheet.create({
     borderColor: "#4169e1",
   },
   optionsButtonSelectedMusic: {
-    backgroundColor: "#FFD54F", // amber for music
-    borderColor: "#FF9800",
+    backgroundColor: "#20cc5cff",
+    borderColor: "#ffffffff",
   },
   optionsButtonSelectedSpeech: {
-    backgroundColor: "#90CAF9", // light blue for speech
-    borderColor: "#1976D2",
+    backgroundColor: "#158932ff",
+    borderColor: "#ffffffff",
   },
   label: {
     fontWeight: "bold",
@@ -106,10 +145,27 @@ const styles = StyleSheet.create({
   dayContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "space-between",
+    gap: 20,
+    marginTop: 5,
+    marginBottom: 5,
+    paddingHorizontal: 0,
+    paddingRight: 25,
+    paddingLeft: 25,
+    width: "100%",
+  },
+  daySection: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
-    marginTop: 20,
-    marginBottom: 10,
+    flex: 1,
+    minWidth: 0,
+  },
+  recurringSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    flexShrink: 0,
   },
   dayInput: {
     fontSize: 18,
@@ -179,23 +235,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  recurringContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    marginBottom: 20,
-  },
   audioList: {
     width: "120%",
+    overflow: "scroll",
     marginTop: 5,
-    marginBottom: 10,
-    maxHeight: 250,
+    marginBottom: 0,
+    maxHeight: 105,
   },
   audioItem: {
     backgroundColor: "#f0f0f0",
-    padding: 12,
-    borderBottomWidth: 1,
+    padding: 6,
+    borderBottomWidth: 2,
     borderBottomColor: "#ddd",
     flexDirection: "row",
     alignItems: "center",
@@ -205,10 +255,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   audioItemSelected: {
-    backgroundColor: "#81b0ff",
+    backgroundColor: "#3dd0278f",
   },
   audioLabel: {
-    fontSize: 14,
+    fontSize: 16,
     color: "#333",
   },
   audioLabelSelected: {
@@ -227,10 +277,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   saveButton: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: "#119a41ff",
     padding: 15,
     width: "120%",
-    marginTop: 20,
+    marginTop: 0,
     borderRadius: 8,
   },
   saveButtonLabel: {
@@ -238,6 +288,16 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 18,
     textAlign: "center",
+  },
+  saveButtonDisabled: {
+    backgroundColor: "#bdbdbd",
+  },
+  saveButtonPressed: {
+    opacity: 0.95,
+    transform: [{ scale: 0.995 }],
+  },
+  saveButtonLabelDisabled: {
+    color: "#666666",
   },
   selectedBadgeRow: {
     flexDirection: "row",

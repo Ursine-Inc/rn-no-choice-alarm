@@ -1,23 +1,28 @@
-import { KillSwitch } from "@/components/KillSwitch";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { useActiveAlarm } from "@/hooks/useActiveAlarm";
 import { Audio } from "expo-av";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { KillSwitch } from "@/components/KillSwitch";
+import ParallaxScrollView from "@/components/ParallaxScrollView";
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import { useActiveAlarm } from "@/hooks/useActiveAlarm";
+import { ENABLE_DELETE_ALL } from "./alarms";
+
 export default function ActiveAlarmScreen() {
   const params = useLocalSearchParams();
   const { hour, minutes, day, isRecurring, selectedAudio } = params;
+
   const {
     setHasActiveAlarm,
     isAlarmKilled,
     setIsAlarmKilled,
     getAudioSource,
     isAlarmCountdownPaused,
+    isAlarmCancelled,
+    cancelAlarm,
   } = useActiveAlarm();
 
   const [countdown, setCountdown] = useState("");
@@ -26,13 +31,9 @@ export default function ActiveAlarmScreen() {
   const [isAlarmSounding, setIsAlarmSounding] = useState(false);
   const alarmTriggeredRef = useRef(false);
 
-  useEffect(() => {
-    setHasActiveAlarm(true);
-  }, [setHasActiveAlarm]);
-
   const playAlarmSound = useCallback(
     async (audioName: string) => {
-      if (alarmTriggeredRef.current || isAlarmKilled) {
+      if (alarmTriggeredRef.current || isAlarmKilled || isAlarmCancelled) {
         return;
       }
 
@@ -40,8 +41,6 @@ export default function ActiveAlarmScreen() {
       setIsAlarmSounding(true);
 
       try {
-        console.log("🔔 ALARM TIME! Playing sound:", audioName);
-
         await Audio.setAudioModeAsync({
           playsInSilentModeIOS: true,
           staysActiveInBackground: true,
@@ -56,13 +55,11 @@ export default function ActiveAlarmScreen() {
           return;
         }
 
-        console.log("✅ Audio source found! Playing...");
-
         const { sound: newSound } = await Audio.Sound.createAsync(
           audioSource,
           {
             shouldPlay: true,
-            isLooping: true, // Loop the alarm sound
+            isLooping: true,
             volume: 1.0,
           },
           (status: any) => {
@@ -74,13 +71,17 @@ export default function ActiveAlarmScreen() {
 
         setSound(newSound);
       } catch (error) {
-        console.error("Error playing alarm sound:", error);
         setIsAlarmSounding(false);
         alarmTriggeredRef.current = false;
       }
     },
     [getAudioSource, isAlarmKilled]
   );
+
+  const handleCancel = () => {
+    cancelAlarm();
+    router.push("/alarms");
+  };
 
   useEffect(() => {
     return () => {
@@ -93,8 +94,14 @@ export default function ActiveAlarmScreen() {
   }, [sound]);
 
   useEffect(() => {
+    if (isAlarmCancelled) {
+      alarmTriggeredRef.current = false;
+      setSound(null);
+      setIsAlarmSounding(false);
+      setCountdown("Alarm Cancelled");
+      cancelAlarm();
+    }
     if (isAlarmKilled && sound) {
-      console.log("Stopping alarm sound - alarm killed");
       sound.stopAsync();
       sound.unloadAsync();
       setSound(null);
@@ -122,7 +129,12 @@ export default function ActiveAlarmScreen() {
 
       const diff = alarmTime.getTime() - now.getTime();
 
-      if (diff <= 0 && !isAlarmKilled && !alarmTriggeredRef.current) {
+      if (
+        diff <= 0 &&
+        !isAlarmKilled &&
+        !alarmTriggeredRef.current &&
+        !isAlarmSounding
+      ) {
         playAlarmSound(selectedAudio as string);
       }
 
@@ -140,7 +152,16 @@ export default function ActiveAlarmScreen() {
     const interval = setInterval(calculateCountdown, 1000);
 
     return () => clearInterval(interval);
-  }, [hour, minutes, scaleAnim, isAlarmKilled, selectedAudio, playAlarmSound]);
+  }, [
+    hour,
+    minutes,
+    scaleAnim,
+    isAlarmKilled,
+    selectedAudio,
+    playAlarmSound,
+    isAlarmSounding,
+    isAlarmCountdownPaused,
+  ]);
 
   useEffect(() => {
     if (isAlarmKilled) {
@@ -154,27 +175,26 @@ export default function ActiveAlarmScreen() {
     }
   }, [isAlarmKilled, setHasActiveAlarm, setIsAlarmKilled]);
 
-  const handleEdit = () => {
-    setHasActiveAlarm(false);
-    router.back();
-  };
-
-  const handleCancel = () => {
-    setHasActiveAlarm(false);
-    router.back();
-  };
-
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
       headerImage={
         <Image
-          source={require("@/assets/images/header-image.jpg")}
+          source={require("@/assets/images/splash-screen_2025.jpg")}
           style={styles.headerImage}
+          contentFit="cover"
+          contentPosition="top"
         />
       }
-      noPadding
+      noPadding={true}
     >
+      {ENABLE_DELETE_ALL && (
+        <View style={styles.buttonContainer}>
+          <Pressable style={styles.cancelButton} onPress={handleCancel}>
+            <Text style={styles.cancelButtonText}>Cancel Alarm</Text>
+          </Pressable>
+        </View>
+      )}
       <View style={styles.killSwitchWrapper}>
         <KillSwitch />
       </View>
@@ -188,6 +208,26 @@ export default function ActiveAlarmScreen() {
             },
           ]}
         >
+          <ThemedText type="title" style={styles.title}>
+            {isAlarmKilled ? "Alarm Killed! 🔴" : "Alarm Active! ✅"}
+          </ThemedText>
+
+          <View
+            style={[
+              styles.timeDisplay,
+              isAlarmKilled && styles.timeDisplayKilled,
+            ]}
+          >
+            <Text
+              style={[
+                styles.alarmTime,
+                isAlarmKilled && styles.alarmTimeKilled,
+              ]}
+            >
+              {String(hour).padStart(2, "0")}:{String(minutes).padStart(2, "0")}
+            </Text>
+          </View>
+
           <View
             style={[
               styles.countdownContainer,
@@ -204,26 +244,6 @@ export default function ActiveAlarmScreen() {
               ]}
             >
               {countdown}
-            </Text>
-          </View>
-
-          <ThemedText type="title" style={styles.title}>
-            {isAlarmKilled ? "Alarm Killed! 🔴" : "Alarm Set! ✅"}
-          </ThemedText>
-
-          <View
-            style={[
-              styles.timeDisplay,
-              isAlarmKilled && styles.timeDisplayKilled,
-            ]}
-          >
-            <Text
-              style={[
-                styles.alarmTime,
-                isAlarmKilled && styles.alarmTimeKilled,
-              ]}
-            >
-              {String(hour).padStart(2, "0")}:{String(minutes).padStart(2, "0")}
             </Text>
           </View>
 
@@ -249,16 +269,6 @@ export default function ActiveAlarmScreen() {
               </View>
             )}
           </View>
-
-          <View style={styles.buttonContainer}>
-            <Pressable style={styles.editButton} onPress={handleEdit}>
-              <Text style={styles.editButtonText}>Edit Alarm</Text>
-            </Pressable>
-
-            <Pressable style={styles.cancelButton} onPress={handleCancel}>
-              <Text style={styles.cancelButtonText}>Cancel Alarm</Text>
-            </Pressable>
-          </View>
         </Animated.View>
       </ThemedView>
     </ParallaxScrollView>
@@ -274,13 +284,13 @@ const styles = StyleSheet.create({
     margin: 0,
   },
   headerImage: {
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    height: "100%",
     width: "100%",
+    height: 260,
     position: "absolute",
     top: 0,
     left: 0,
+    right: 0,
+    overflow: "hidden",
   },
   alarmCard: {
     backgroundColor: "#fff",
