@@ -8,27 +8,32 @@
     "scheme": "nochoicealarm",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "buildNumber": "2025.11.21.2",
+      "buildNumber": "2025.11.21.3",
       "supportsTablet": true,
       "bundleIdentifier": "com.ursineenterprises.nochoicealarm",
       "deploymentTarget": "16.4"
     },
     "android": {
-      "versionCode": 2025112102,
+      "versionCode": 2025112103,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon_2025.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.ursineenterprises.nochoicealarm",
-      "permissions": ["INTERNET", "WAKE_LOCK"]
+      "permissions": [
+        "INTERNET",
+        "WAKE_LOCK"
+      ]
     },
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/icon_2025.png"
     },
-    "plugins": ["expo-router"],
+    "plugins": [
+      "expo-router"
+    ],
     "experiments": {
       "typedRoutes": true
     },
