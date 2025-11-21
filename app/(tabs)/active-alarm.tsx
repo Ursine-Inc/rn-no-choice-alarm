@@ -288,13 +288,13 @@ const styles = StyleSheet.create({
     margin: 0,
   },
   headerImage: {
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    height: "100%",
     width: "100%",
+    height: 260,
     position: "absolute",
     top: 0,
     left: 0,
+    right: 0,
+    overflow: "hidden",
   },
   alarmCard: {
     backgroundColor: "#fff",
