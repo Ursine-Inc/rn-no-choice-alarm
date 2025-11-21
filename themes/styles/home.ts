@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   },
   options: {
     flex: 1,
-    marginTop: 0,
+    marginTop: 15,
     marginBottom: 0,
     flexDirection: "column",
     alignItems: "center",
@@ -98,6 +98,7 @@ const styles = StyleSheet.create({
     gap: 5,
     paddingRight: 50,
     paddingLeft: 50,
+    paddingBottom: 0,
   },
   addButton: {
     padding: 5,
@@ -126,12 +127,12 @@ const styles = StyleSheet.create({
     borderColor: "#4169e1",
   },
   optionsButtonSelectedMusic: {
-    backgroundColor: "#FFD54F", // amber for music
-    borderColor: "#FF9800",
+    backgroundColor: "#119a41ff",
+    borderColor: "#ffffffff",
   },
   optionsButtonSelectedSpeech: {
-    backgroundColor: "#90CAF9", // light blue for speech
-    borderColor: "#1976D2",
+    backgroundColor: "#158932ff",
+    borderColor: "#ffffffff",
   },
   label: {
     fontWeight: "bold",
@@ -234,7 +235,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-
   audioList: {
     width: "120%",
     overflow: "scroll",
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   audioItemSelected: {
-    backgroundColor: "#81b0ff",
+    backgroundColor: "#3dd0278f",
   },
   audioLabel: {
     fontSize: 16,
