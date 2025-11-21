@@ -87,15 +87,27 @@ jobs:
                     echo "ASC_APP_ID does not look numeric. Please set ASC_APP_ID to the numeric App Store Connect App ID."
                     exit 1
                   fi
+            - name: Inject ASC_APP_ID into eas.json (CI only)
+              run: |
+                  set -euo pipefail
+                  tmpfile=$(mktemp)
+                  # Write ascAppId into the preview submit profile atomically
+                  APP_ID="${{ secrets.ASC_APP_ID }}"
+                  tmpfile=$(mktemp)
+                  jq --arg id "$APP_ID" \
+                  '.submit.preview.ascAppId = ($id | tonumber?) // $id' eas.json > "$tmpfile" && \
+                  mv "$tmpfile" eas.json
+                  echo "Injected ascAppId into eas.json.preview submit profile."
+              env:
+                  ASC_APP_ID: ${{ secrets.ASC_APP_ID }}
             - name: Submit to TestFlight
               run: |
                   pnpm eas submit --platform ios --profile preview --non-interactive --latest
               env:
                   EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-                  ASC_APP_ID: ${{ secrets.ASC_APP_ID }}
-                  APPLE_APP_ID: ${{ secrets.ASC_APP_ID }}
-                  APPLE_ID: ${{ secrets.APPLE_ID }}
-                  APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+                  EXPO_APPLE_ID: ${{ secrets.APPLE_ID }}
+                  EXPO_APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+                  EXPO_APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
             - name: Notify Slack of build status
               uses: ./.github/actions/notify-slack
               with:
