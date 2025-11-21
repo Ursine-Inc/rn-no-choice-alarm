@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   contentNoPadding: {
-    paddingTop: 2,
+    paddingTop: 10,
     paddingBottom: 0,
     paddingLeft: 0,
     paddingRight: 0,
