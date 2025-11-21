@@ -14,26 +14,21 @@
       "deploymentTarget": "16.4"
     },
     "android": {
-      "versionCode": 202511212,
+      "versionCode": 2025112102,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon_2025.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.ursineenterprises.nochoicealarm",
-      "permissions": [
-        "INTERNET",
-        "WAKE_LOCK"
-      ]
+      "permissions": ["INTERNET", "WAKE_LOCK"]
     },
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/icon_2025.png"
     },
-    "plugins": [
-      "expo-router"
-    ],
+    "plugins": ["expo-router"],
     "experiments": {
       "typedRoutes": true
     },

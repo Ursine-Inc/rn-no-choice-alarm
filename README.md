@@ -1,4 +1,4 @@
-<div align="center">
+| Android  | 1.0.0   | 2025112102 || iOS      | 1.0.0   | 2025.11.21.2 |<div align="center">
   <img src="assets/images/splash-screen_2025.jpg" alt="KooM! Splash Screen" width="300">
   
   # KooM!

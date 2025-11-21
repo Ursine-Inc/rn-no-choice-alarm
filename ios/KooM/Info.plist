@@ -32,7 +32,8 @@
         </array>
       </dict>
     </array>
-    .11.21.2</string>
+    <key>CFBundleVersion</key>
+    <string>2025.11.21.2</string>
     <key>LSMinimumSystemVersion</key>
     <string>12.0</string>
     <key>LSRequiresIPhoneOS</key>
