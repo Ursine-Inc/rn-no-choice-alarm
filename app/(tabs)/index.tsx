@@ -306,7 +306,7 @@ export default function HomeScreen() {
                               setHour(itemValue === -1 ? null : itemValue)
                             }
                             style={styles.timePicker}
-                            itemStyle={styles.pickerItem}
+                            itemStyle={styles.pickerDropdownItem}
                           >
                             <Picker.Item
                               key="empty-hour"
@@ -328,7 +328,7 @@ export default function HomeScreen() {
                               setMinutes(itemValue === -1 ? null : itemValue)
                             }
                             style={styles.timePicker}
-                            itemStyle={styles.pickerItem}
+                            itemStyle={styles.pickerDropdownItem}
                           >
                             <Picker.Item
                               key="empty-min"
@@ -367,6 +367,7 @@ export default function HomeScreen() {
                         key={i}
                         label={String(i).padStart(2, "0")}
                         value={i}
+
                       />
                     ))}
                   </Picker>
@@ -394,9 +395,12 @@ export default function HomeScreen() {
                 </View>
               )}
             </View>
-          </View>
-          <View style={styles.dayContainer}>
-            <View style={styles.daySection}>
+            <View style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                width: "100%",
+              }}>
               <ThemedText type="subtitle">Day</ThemedText>
               {Platform.OS === "ios" ? (
                 <>
@@ -429,8 +433,8 @@ export default function HomeScreen() {
                           onValueChange={(itemValue: string) =>
                             setDay(itemValue === "" ? null : itemValue)
                           }
-                          style={styles.picker}
-                          itemStyle={styles.pickerItem}
+                          style={styles.dayPicker}
+                          itemStyle={styles.pickerDropdownItem}
                         >
                           <Picker.Item key="empty-day" label="--" value="" />
                           {daysOfWeek.map((dayName) => (
@@ -446,13 +450,14 @@ export default function HomeScreen() {
                   </Modal>
                 </>
               ) : (
-                <View style={styles.pickerContainer}>
+                <View style={styles.dayContainer}>
                   <Picker
                     selectedValue={day ?? ""}
                     onValueChange={(itemValue: string) =>
                       setDay(itemValue === "" ? null : itemValue)
                     }
-                    style={styles.picker}
+                    style={styles.dayPicker}
+                    itemStyle={styles.pickerDropdownItem}
                   >
                     <Picker.Item key="empty-day-android" label="--" value="" />
                     {daysOfWeek.map((dayName) => (
@@ -465,8 +470,8 @@ export default function HomeScreen() {
                   </Picker>
                 </View>
               )}
-            </View>
-
+          </View>
+          <View style={styles.recurringContainer}>
             <View style={styles.recurringSection}>
               <ThemedText type="subtitle">Recurring</ThemedText>
               <Switch
@@ -477,7 +482,8 @@ export default function HomeScreen() {
               />
             </View>
           </View>
-          <View style={styles.options}>
+          </View>
+          <View style={styles.alarmAudioOptions}>
             <ThemedText type="subtitle">Select soundtrack</ThemedText>
             {selectedAudio ? (
               <View style={styles.selectedBadgeRow}>
@@ -601,6 +607,7 @@ export default function HomeScreen() {
                   <Pressable
                     style={[
                       styles.optionsButton,
+                      isSpeechExpanded && styles.optionsButtonSelectedSpeech,
                       selectedBelongsToSpeech &&
                         styles.optionsButtonSelectedSpeech,
                     ]}
