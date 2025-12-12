@@ -32,7 +32,7 @@ react {
     //   The list of variants to that are debuggable. For those we're going to
     //   skip the bundling of the JS bundle and the assets. By default is just 'debug'.
     //   If you add flavors like lite, prod, etc. you'll have to list your debuggableVariants.
-    // debuggableVariants = ["liteDebug", "prodDebug"]
+    debuggableVariants = ["devDebug", "stagingDebug"]
 
     /* Bundling */
     //   A list containing the node command and its flags. Default is just 'node'.
@@ -106,6 +106,28 @@ android {
             keyPassword 'android'
         }
     }
+    
+    flavorDimensions "environment"
+    productFlavors {
+        dev {
+            dimension "environment"
+            applicationIdSuffix ".dev"
+            resValue "string", "app_name", "KooM! (Dev)"
+            buildConfigField "String", "ENVIRONMENT", '"dev"'
+        }
+        staging {
+            dimension "environment"
+            applicationIdSuffix ".staging"
+            resValue "string", "app_name", "KooM! (Staging)"
+            buildConfigField "String", "ENVIRONMENT", '"staging"'
+        }
+        prod {
+            dimension "environment"
+            resValue "string", "app_name", "KooM!"
+            buildConfigField "String", "ENVIRONMENT", '"production"'
+        }
+    }
+    
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
