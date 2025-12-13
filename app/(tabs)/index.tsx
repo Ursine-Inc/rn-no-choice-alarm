@@ -288,10 +288,11 @@ export default function HomeScreen() {
                     transparent={true}
                     animationType="slide"
                   >
-                    <Pressable
-                      style={styles.modalOverlay}
-                      onPress={() => setShowTimePicker(false)}
-                    >
+                    <View style={styles.modalOverlay}>
+                      <Pressable
+                        style={{ flex: 1 }}
+                        onPress={() => setShowTimePicker(false)}
+                      />
                       <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
                           <ThemedText type="subtitle">Select Time</ThemedText>
@@ -305,8 +306,8 @@ export default function HomeScreen() {
                             onValueChange={(itemValue: number) =>
                               setHour(itemValue === -1 ? null : itemValue)
                             }
-                            style={styles.timePicker}
-                            itemStyle={styles.pickerDropdownItem}
+                            style={{ flex: 1, height: 200 }}
+                            itemStyle={{ height: 200 }}
                           >
                             <Picker.Item
                               key="empty-hour"
@@ -327,8 +328,8 @@ export default function HomeScreen() {
                             onValueChange={(itemValue: number) =>
                               setMinutes(itemValue === -1 ? null : itemValue)
                             }
-                            style={styles.timePicker}
-                            itemStyle={styles.pickerDropdownItem}
+                            style={{ flex: 1, height: 200 }}
+                            itemStyle={{ height: 200 }}
                           >
                             <Picker.Item
                               key="empty-min"
@@ -345,7 +346,7 @@ export default function HomeScreen() {
                           </Picker>
                         </View>
                       </View>
-                    </Pressable>
+                    </View>
                   </Modal>
                 </>
               ) : (
@@ -417,10 +418,11 @@ export default function HomeScreen() {
                     transparent={true}
                     animationType="slide"
                   >
-                    <Pressable
-                      style={styles.modalOverlay}
-                      onPress={() => setShowDayPicker(false)}
-                    >
+                    <View style={styles.modalOverlay}>
+                      <Pressable
+                        style={{ flex: 1 }}
+                        onPress={() => setShowDayPicker(false)}
+                      />
                       <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
                           <ThemedText type="subtitle">Select Day</ThemedText>
@@ -433,8 +435,8 @@ export default function HomeScreen() {
                           onValueChange={(itemValue: string) =>
                             setDay(itemValue === "" ? null : itemValue)
                           }
-                          style={styles.dayPicker}
-                          itemStyle={styles.pickerDropdownItem}
+                          style={{ width: "100%", height: 200 }}
+                          itemStyle={{ height: 200 }}
                         >
                           <Picker.Item key="empty-day" label="--" value="" />
                           {daysOfWeek.map((dayName) => (
@@ -446,7 +448,7 @@ export default function HomeScreen() {
                           ))}
                         </Picker>
                       </View>
-                    </Pressable>
+                    </View>
                   </Modal>
                 </>
               ) : (
