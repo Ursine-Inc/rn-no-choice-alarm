@@ -1,20 +1,20 @@
-import { Picker } from "@react-native-picker/picker";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 
+import { AndroidDayPicker } from "@/components/AndroidDayPicker";
 import { AndroidTimePicker } from "@/components/AndroidTimePicker";
+import { IOSDayPicker } from "@/components/IOSDayPicker";
 import { IOSTimePicker } from "@/components/IOSTimePicker";
 import { AlarmStorage } from "@/data/AlarmStorage";
 import { Audio } from "expo-av";
 import { Image } from "expo-image";
 import {
-  Modal,
   Platform,
   Pressable,
   ScrollView,
   Switch,
   Text,
-  View,
+  View
 } from "react-native";
 import { ThemedText } from "../../components/ThemedText";
 import { ThemedView } from "../../components/ThemedView";
@@ -53,7 +53,6 @@ export default function HomeScreen() {
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
   const [previewProgress, setPreviewProgress] = useState(0);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
-  const [showDayPicker, setShowDayPicker] = useState(false);
   const [previewTimeout, setPreviewTimeout] = useState<number | null>(null);
 
   const daysOfWeek = [
@@ -296,73 +295,17 @@ export default function HomeScreen() {
               }}>
               <ThemedText type="subtitle">Day</ThemedText>
               {Platform.OS === "ios" ? (
-                <>
-                  <Pressable
-                    style={styles.dayButton}
-                    onPress={() => setShowDayPicker(true)}
-                  >
-                    <Text style={styles.dayButtonText}>{day ?? "--"}</Text>
-                    <Text style={styles.dayButtonArrow}>▼</Text>
-                  </Pressable>
-
-                  <Modal
-                    visible={showDayPicker}
-                    transparent={true}
-                    animationType="slide"
-                  >
-                    <View style={styles.modalOverlay}>
-                      <Pressable
-                        style={{ flex: 1 }}
-                        onPress={() => setShowDayPicker(false)}
-                      />
-                      <View style={styles.modalContent}>
-                        <View style={styles.modalHeader}>
-                          <ThemedText type="subtitle">Select Day</ThemedText>
-                          <Pressable onPress={() => setShowDayPicker(false)}>
-                            <Text style={styles.doneButton}>Done</Text>
-                          </Pressable>
-                        </View>
-                        <Picker
-                          selectedValue={day ?? ""}
-                          onValueChange={(itemValue: string) =>
-                            setDay(itemValue === "" ? null : itemValue)
-                          }
-                          style={{ width: "100%", height: 200 }}
-                          itemStyle={{ height: 200 }}
-                        >
-                          <Picker.Item key="empty-day" label="--" value="" />
-                          {daysOfWeek.map((dayName) => (
-                            <Picker.Item
-                              key={dayName}
-                              label={dayName}
-                              value={dayName}
-                            />
-                          ))}
-                        </Picker>
-                      </View>
-                    </View>
-                  </Modal>
-                </>
+                <IOSDayPicker
+                  day={day}
+                  daysOfWeek={daysOfWeek}
+                  onDayChange={setDay}
+                />
               ) : (
-                <View style={styles.dayContainer}>
-                  <Picker
-                    selectedValue={day ?? ""}
-                    onValueChange={(itemValue: string) =>
-                      setDay(itemValue === "" ? null : itemValue)
-                    }
-                    style={styles.dayPicker}
-                    itemStyle={styles.pickerDropdownItem}
-                  >
-                    <Picker.Item key="empty-day-android" label="--" value="" />
-                    {daysOfWeek.map((dayName) => (
-                      <Picker.Item
-                        key={dayName}
-                        label={dayName}
-                        value={dayName}
-                      />
-                    ))}
-                  </Picker>
-                </View>
+                <AndroidDayPicker
+                  day={day}
+                  daysOfWeek={daysOfWeek}
+                  onDayChange={setDay}
+                />
               )}
           </View>
           <View style={styles.recurringContainer}>
