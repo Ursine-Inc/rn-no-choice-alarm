@@ -2,6 +2,8 @@ import { Picker } from "@react-native-picker/picker";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 
+import { AndroidTimePicker } from "@/components/AndroidTimePicker";
+import { IOSTimePicker } from "@/components/IOSTimePicker";
 import { AlarmStorage } from "@/data/AlarmStorage";
 import { Audio } from "expo-av";
 import { Image } from "expo-image";
@@ -42,7 +44,6 @@ export default function HomeScreen() {
   const [minutes, setMinutes] = useState<number | null>(null);
   // start with no day selected to make validation explicit
   const [day, setDay] = useState<string | null>(null);
-  const [showTimePicker, setShowTimePicker] = useState(false);
   const [isRecurring, setIsRecurring] = useState(false);
   const [isSpeechExpanded, setIsSpeechExpanded] = useState(false);
   const [isMusicExpanded, setIsMusicExpanded] = useState(false);
@@ -268,132 +269,23 @@ export default function HomeScreen() {
             >
               <ThemedText type="subtitle">Time</ThemedText>
               {Platform.OS === "ios" ? (
-                <>
-                  <Pressable
-                    style={styles.dayButton}
-                    onPress={() => setShowTimePicker(true)}
-                  >
-                    <Text style={styles.dayButtonText}>
-                      {hour === null || minutes === null
-                        ? "--:--"
-                        : `${String(hour).padStart(2, "0")}:${String(
-                            minutes
-                          ).padStart(2, "0")}`}
-                    </Text>
-                    <Text style={styles.dayButtonArrow}>▼</Text>
-                  </Pressable>
-
-                  <Modal
-                    visible={showTimePicker}
-                    transparent={true}
-                    animationType="slide"
-                  >
-                    <View style={styles.modalOverlay}>
-                      <Pressable
-                        style={{ flex: 1 }}
-                        onPress={() => setShowTimePicker(false)}
-                      />
-                      <View style={styles.modalContent}>
-                        <View style={styles.modalHeader}>
-                          <ThemedText type="subtitle">Select Time</ThemedText>
-                          <Pressable onPress={() => setShowTimePicker(false)}>
-                            <Text style={styles.doneButton}>Done</Text>
-                          </Pressable>
-                        </View>
-                        <View style={styles.timePickerContainer}>
-                          <Picker
-                            selectedValue={hour ?? -1}
-                            onValueChange={(itemValue: number) =>
-                              setHour(itemValue === -1 ? null : itemValue)
-                            }
-                            style={{ flex: 1, height: 200 }}
-                            itemStyle={{ height: 200 }}
-                          >
-                            <Picker.Item
-                              key="empty-hour"
-                              label="--"
-                              value={-1}
-                            />
-                            {Array.from({ length: 24 }, (_, i) => (
-                              <Picker.Item
-                                key={i}
-                                label={String(i).padStart(2, "0")}
-                                value={i}
-                              />
-                            ))}
-                          </Picker>
-                          <Text style={styles.timePickerSeparator}>:</Text>
-                          <Picker
-                            selectedValue={minutes ?? -1}
-                            onValueChange={(itemValue: number) =>
-                              setMinutes(itemValue === -1 ? null : itemValue)
-                            }
-                            style={{ flex: 1, height: 200 }}
-                            itemStyle={{ height: 200 }}
-                          >
-                            <Picker.Item
-                              key="empty-min"
-                              label="--"
-                              value={-1}
-                            />
-                            {Array.from({ length: 60 }, (_, i) => (
-                              <Picker.Item
-                                key={i}
-                                label={String(i).padStart(2, "0")}
-                                value={i}
-                              />
-                            ))}
-                          </Picker>
-                        </View>
-                      </View>
-                    </View>
-                  </Modal>
-                </>
+                <IOSTimePicker
+                  hour={hour}
+                  minutes={minutes}
+                  onTimeChange={(h, m) => {
+                    setHour(h);
+                    setMinutes(m);
+                  }}
+                />
               ) : (
-                <View style={styles.timePickerContainer}>
-                  <Picker
-                    selectedValue={hour ?? -1}
-                    onValueChange={(itemValue: number) =>
-                      setHour(itemValue === -1 ? null : itemValue)
-                    }
-                    style={styles.timePicker}
-                  >
-                    <Picker.Item
-                      key="empty-hour-android"
-                      label="--"
-                      value={-1}
-                    />
-                    {Array.from({ length: 24 }, (_, i) => (
-                      <Picker.Item
-                        key={i}
-                        label={String(i).padStart(2, "0")}
-                        value={i}
-
-                      />
-                    ))}
-                  </Picker>
-                  <Text style={styles.timePickerSeparator}>:</Text>
-                  <Picker
-                    selectedValue={minutes ?? -1}
-                    onValueChange={(itemValue: number) =>
-                      setMinutes(itemValue === -1 ? null : itemValue)
-                    }
-                    style={styles.timePicker}
-                  >
-                    <Picker.Item
-                      key="empty-min-android"
-                      label="--"
-                      value={-1}
-                    />
-                    {Array.from({ length: 60 }, (_, i) => (
-                      <Picker.Item
-                        key={i}
-                        label={String(i).padStart(2, "0")}
-                        value={i}
-                      />
-                    ))}
-                  </Picker>
-                </View>
+                <AndroidTimePicker
+                  hour={hour}
+                  minutes={minutes}
+                  onTimeChange={(h, m) => {
+                    setHour(h);
+                    setMinutes(m);
+                  }}
+                />
               )}
             </View>
             <View style={{
