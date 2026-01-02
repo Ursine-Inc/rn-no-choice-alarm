@@ -1,6 +1,5 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet } from "react-native";
 
 interface IOSTimePickerProps {
   hour: number | null;
