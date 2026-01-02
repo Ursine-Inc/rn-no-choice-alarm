@@ -25,7 +25,8 @@
     "ios": "unset CC CXX && npx expo run:ios --device",
     "ios:dev": "pnpm ios:clean && unset CC CXX && APP_VARIANT=dev npx expo run:ios --device",
     "ios:dev:simulator": "pnpm ios:clean && unset CC CXX && APP_VARIANT=dev npx expo run:ios",
-    "ios:dev-no-clean": "unset CC CXX && APP_VARIANT=dev npx expo run:ios --device",
+    "ios:dev:device-no-clean": "APP_VARIANT=dev npx expo run:ios --device",
+    "ios:dev:simulator-no-clean": "APP_VARIANT=dev npx expo run:ios",
     "ios:staging": "unset CC CXX && APP_VARIANT=staging pnpm ios:clean && APP_VARIANT=staging npx expo run:ios --device && pnpm start:devclient",
     "ios:prod": "unset CC CXX && APP_VARIANT=production pnpm ios:clean && APP_VARIANT=production npx expo run:ios --device",
     "web": "npx expo start --web",
@@ -37,6 +38,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
+    "@react-native-community/datetimepicker": "^8.5.1",
     "@react-native-picker/picker": "^2.11.4",
     "@react-navigation/elements": "^2.9.2",
     "@react-navigation/native": "^7.1.25",
