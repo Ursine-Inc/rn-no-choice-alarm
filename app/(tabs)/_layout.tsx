@@ -3,13 +3,10 @@ import { Tabs } from "expo-router";
 import { HapticTab } from "@/components/HapticTab";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import TabBarBackground from "@/components/ui/TabBarBackground";
-import { Colors } from "@/constants/Colors";
 import { useActiveAlarm } from "@/hooks/useActiveAlarm";
-import { useColorScheme } from "@/hooks/useColorScheme";
 import { AlarmStorage } from "../../data/AlarmStorage";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
   const { hasActiveAlarm } = useActiveAlarm();
   const savedAlarms = AlarmStorage.getAllAlarms();
   const hasSavedAlarms = savedAlarms.length > 0 || hasActiveAlarm;
@@ -17,7 +14,6 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
