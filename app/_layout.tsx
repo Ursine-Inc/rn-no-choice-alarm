@@ -3,6 +3,7 @@ import { Stack } from "expo-router";
 import "react-native-reanimated";
 
 import { ActiveAlarmProvider } from "@/hooks/useActiveAlarm";
+import { AudioProvider } from "@/hooks/useAudio";
 import { useEffect, useRef } from "react";
 import { Animated } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -27,6 +28,7 @@ export default function RootLayout() {
   }
 
   return (
+    <AudioProvider>
     <ActiveAlarmProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <Stack screenOptions={{
@@ -37,5 +39,6 @@ export default function RootLayout() {
         </Stack>
       </GestureHandlerRootView>
     </ActiveAlarmProvider>
+    </AudioProvider>
   );
 }

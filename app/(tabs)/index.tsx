@@ -22,6 +22,7 @@ import { PreviewAnimation } from "../../components/player/preview-animation";
 import { useActiveAlarm } from "../../hooks/useActiveAlarm";
 
 import ParallaxScrollView from "@/components/ParallaxScrollView";
+import { useAudio } from "@/hooks/useAudio";
 import styles from "../../themes/styles/home";
 
 const START_CURSOR_MS = 5000;
@@ -32,13 +33,15 @@ export default function HomeScreen() {
   const {
     setHasActiveAlarm,
     setIsAlarmKilled,
-    audioMap,
-    audioCollections,
-    getAudioSource,
-    getAudioCollection,
     isAlarmCancelled,
     setIsAlarmCancelled,
   } = useActiveAlarm();
+  const {
+        audioMap,
+    audioCollections,
+    getAudioSource,
+    getAudioCollection,
+  } = useAudio();
   // start with no time selected to make validation explicit
   const [hour, setHour] = useState<number | null>(null);
   const [minutes, setMinutes] = useState<number | null>(null);
