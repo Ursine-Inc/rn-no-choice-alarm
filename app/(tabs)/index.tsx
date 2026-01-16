@@ -1,18 +1,20 @@
-import { Picker } from "@react-native-picker/picker";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 
+import { AndroidDayPicker } from "@/components/AndroidDayPicker";
+import { AndroidTimePicker } from "@/components/AndroidTimePicker";
+import { IOSDayPicker } from "@/components/IOSDayPicker";
+import { IOSTimePicker } from "@/components/IOSTimePicker";
 import { AlarmStorage } from "@/data/AlarmStorage";
 import { Audio } from "expo-av";
 import { Image } from "expo-image";
 import {
-  Modal,
   Platform,
   Pressable,
   ScrollView,
   Switch,
   Text,
-  View,
+  View
 } from "react-native";
 import { ThemedText } from "../../components/ThemedText";
 import { ThemedView } from "../../components/ThemedView";
@@ -42,7 +44,6 @@ export default function HomeScreen() {
   const [minutes, setMinutes] = useState<number | null>(null);
   // start with no day selected to make validation explicit
   const [day, setDay] = useState<string | null>(null);
-  const [showTimePicker, setShowTimePicker] = useState(false);
   const [isRecurring, setIsRecurring] = useState(false);
   const [isSpeechExpanded, setIsSpeechExpanded] = useState(false);
   const [isMusicExpanded, setIsMusicExpanded] = useState(false);
@@ -52,7 +53,6 @@ export default function HomeScreen() {
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
   const [previewProgress, setPreviewProgress] = useState(0);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
-  const [showDayPicker, setShowDayPicker] = useState(false);
   const [previewTimeout, setPreviewTimeout] = useState<number | null>(null);
 
   const daysOfWeek = [
@@ -268,205 +268,47 @@ export default function HomeScreen() {
             >
               <ThemedText type="subtitle">Time</ThemedText>
               {Platform.OS === "ios" ? (
-                <>
-                  <Pressable
-                    style={styles.dayButton}
-                    onPress={() => setShowTimePicker(true)}
-                  >
-                    <Text style={styles.dayButtonText}>
-                      {hour === null || minutes === null
-                        ? "--:--"
-                        : `${String(hour).padStart(2, "0")}:${String(
-                            minutes
-                          ).padStart(2, "0")}`}
-                    </Text>
-                    <Text style={styles.dayButtonArrow}>▼</Text>
-                  </Pressable>
-
-                  <Modal
-                    visible={showTimePicker}
-                    transparent={true}
-                    animationType="slide"
-                  >
-                    <Pressable
-                      style={styles.modalOverlay}
-                      onPress={() => setShowTimePicker(false)}
-                    >
-                      <View style={styles.modalContent}>
-                        <View style={styles.modalHeader}>
-                          <ThemedText type="subtitle">Select Time</ThemedText>
-                          <Pressable onPress={() => setShowTimePicker(false)}>
-                            <Text style={styles.doneButton}>Done</Text>
-                          </Pressable>
-                        </View>
-                        <View style={styles.timePickerContainer}>
-                          <Picker
-                            selectedValue={hour ?? -1}
-                            onValueChange={(itemValue: number) =>
-                              setHour(itemValue === -1 ? null : itemValue)
-                            }
-                            style={styles.timePicker}
-                            itemStyle={styles.pickerItem}
-                          >
-                            <Picker.Item
-                              key="empty-hour"
-                              label="--"
-                              value={-1}
-                            />
-                            {Array.from({ length: 24 }, (_, i) => (
-                              <Picker.Item
-                                key={i}
-                                label={String(i).padStart(2, "0")}
-                                value={i}
-                              />
-                            ))}
-                          </Picker>
-                          <Text style={styles.timePickerSeparator}>:</Text>
-                          <Picker
-                            selectedValue={minutes ?? -1}
-                            onValueChange={(itemValue: number) =>
-                              setMinutes(itemValue === -1 ? null : itemValue)
-                            }
-                            style={styles.timePicker}
-                            itemStyle={styles.pickerItem}
-                          >
-                            <Picker.Item
-                              key="empty-min"
-                              label="--"
-                              value={-1}
-                            />
-                            {Array.from({ length: 60 }, (_, i) => (
-                              <Picker.Item
-                                key={i}
-                                label={String(i).padStart(2, "0")}
-                                value={i}
-                              />
-                            ))}
-                          </Picker>
-                        </View>
-                      </View>
-                    </Pressable>
-                  </Modal>
-                </>
+                <IOSTimePicker
+                  hour={hour}
+                  minutes={minutes}
+                  onTimeChange={(h, m) => {
+                    setHour(h);
+                    setMinutes(m);
+                  }}
+                />
               ) : (
-                <View style={styles.timePickerContainer}>
-                  <Picker
-                    selectedValue={hour ?? -1}
-                    onValueChange={(itemValue: number) =>
-                      setHour(itemValue === -1 ? null : itemValue)
-                    }
-                    style={styles.timePicker}
-                  >
-                    <Picker.Item
-                      key="empty-hour-android"
-                      label="--"
-                      value={-1}
-                    />
-                    {Array.from({ length: 24 }, (_, i) => (
-                      <Picker.Item
-                        key={i}
-                        label={String(i).padStart(2, "0")}
-                        value={i}
-                      />
-                    ))}
-                  </Picker>
-                  <Text style={styles.timePickerSeparator}>:</Text>
-                  <Picker
-                    selectedValue={minutes ?? -1}
-                    onValueChange={(itemValue: number) =>
-                      setMinutes(itemValue === -1 ? null : itemValue)
-                    }
-                    style={styles.timePicker}
-                  >
-                    <Picker.Item
-                      key="empty-min-android"
-                      label="--"
-                      value={-1}
-                    />
-                    {Array.from({ length: 60 }, (_, i) => (
-                      <Picker.Item
-                        key={i}
-                        label={String(i).padStart(2, "0")}
-                        value={i}
-                      />
-                    ))}
-                  </Picker>
-                </View>
+                <AndroidTimePicker
+                  hour={hour}
+                  minutes={minutes}
+                  onTimeChange={(h, m) => {
+                    setHour(h);
+                    setMinutes(m);
+                  }}
+                />
               )}
             </View>
-          </View>
-          <View style={styles.dayContainer}>
-            <View style={styles.daySection}>
+            <View style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                width: "100%",
+              }}>
               <ThemedText type="subtitle">Day</ThemedText>
               {Platform.OS === "ios" ? (
-                <>
-                  <Pressable
-                    style={styles.dayButton}
-                    onPress={() => setShowDayPicker(true)}
-                  >
-                    <Text style={styles.dayButtonText}>{day ?? "--"}</Text>
-                    <Text style={styles.dayButtonArrow}>▼</Text>
-                  </Pressable>
-
-                  <Modal
-                    visible={showDayPicker}
-                    transparent={true}
-                    animationType="slide"
-                  >
-                    <Pressable
-                      style={styles.modalOverlay}
-                      onPress={() => setShowDayPicker(false)}
-                    >
-                      <View style={styles.modalContent}>
-                        <View style={styles.modalHeader}>
-                          <ThemedText type="subtitle">Select Day</ThemedText>
-                          <Pressable onPress={() => setShowDayPicker(false)}>
-                            <Text style={styles.doneButton}>Done</Text>
-                          </Pressable>
-                        </View>
-                        <Picker
-                          selectedValue={day ?? ""}
-                          onValueChange={(itemValue: string) =>
-                            setDay(itemValue === "" ? null : itemValue)
-                          }
-                          style={styles.picker}
-                          itemStyle={styles.pickerItem}
-                        >
-                          <Picker.Item key="empty-day" label="--" value="" />
-                          {daysOfWeek.map((dayName) => (
-                            <Picker.Item
-                              key={dayName}
-                              label={dayName}
-                              value={dayName}
-                            />
-                          ))}
-                        </Picker>
-                      </View>
-                    </Pressable>
-                  </Modal>
-                </>
+                <IOSDayPicker
+                  day={day}
+                  daysOfWeek={daysOfWeek}
+                  onDayChange={setDay}
+                />
               ) : (
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={day ?? ""}
-                    onValueChange={(itemValue: string) =>
-                      setDay(itemValue === "" ? null : itemValue)
-                    }
-                    style={styles.picker}
-                  >
-                    <Picker.Item key="empty-day-android" label="--" value="" />
-                    {daysOfWeek.map((dayName) => (
-                      <Picker.Item
-                        key={dayName}
-                        label={dayName}
-                        value={dayName}
-                      />
-                    ))}
-                  </Picker>
-                </View>
+                <AndroidDayPicker
+                  day={day}
+                  daysOfWeek={daysOfWeek}
+                  onDayChange={setDay}
+                />
               )}
-            </View>
-
+          </View>
+          <View style={styles.recurringContainer}>
             <View style={styles.recurringSection}>
               <ThemedText type="subtitle">Recurring</ThemedText>
               <Switch
@@ -477,7 +319,8 @@ export default function HomeScreen() {
               />
             </View>
           </View>
-          <View style={styles.options}>
+          </View>
+          <View style={styles.alarmAudioOptions}>
             <ThemedText type="subtitle">Select soundtrack</ThemedText>
             {selectedAudio ? (
               <View style={styles.selectedBadgeRow}>
@@ -601,6 +444,7 @@ export default function HomeScreen() {
                   <Pressable
                     style={[
                       styles.optionsButton,
+                      isSpeechExpanded && styles.optionsButtonSelectedSpeech,
                       selectedBelongsToSpeech &&
                         styles.optionsButtonSelectedSpeech,
                     ]}
