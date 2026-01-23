@@ -13,7 +13,8 @@
       "@/constants/*": ["./constants/*"],
       "@/components/*": ["./components/*"],
       "@/data/*": ["./data/*"],
-      "@/themes/*": ["./themes/*"]
+      "@/themes/*": ["./themes/*"],
+      "@/types/*": ["./types/*"]
     }
   }
 }
