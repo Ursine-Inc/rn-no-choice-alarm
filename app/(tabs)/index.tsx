@@ -5,7 +5,7 @@ import { AndroidDayPicker } from "@/components/AndroidDayPicker";
 import { AndroidTimePicker } from "@/components/AndroidTimePicker";
 import { IOSDayPicker } from "@/components/IOSDayPicker";
 import { IOSTimePicker } from "@/components/IOSTimePicker";
-import { AlarmStorage } from "@/data/AlarmStorage";
+import { Alarm } from "@/types/alarms";
 import { Audio } from "expo-av";
 import { Image } from "expo-image";
 import {
@@ -14,7 +14,7 @@ import {
   ScrollView,
   Switch,
   Text,
-  View
+  View,
 } from "react-native";
 import { ThemedText } from "../../components/ThemedText";
 import { ThemedView } from "../../components/ThemedView";
@@ -35,13 +35,10 @@ export default function HomeScreen() {
     setIsAlarmKilled,
     isAlarmCancelled,
     setIsAlarmCancelled,
+    createNewAlarm,
   } = useActiveAlarm();
-  const {
-        audioMap,
-    audioCollections,
-    getAudioSource,
-    getAudioCollection,
-  } = useAudio();
+  const { audioMap, audioCollections, getAudioSource, getAudioCollection } =
+    useAudio();
   // start with no time selected to make validation explicit
   const [hour, setHour] = useState<number | null>(null);
   const [minutes, setMinutes] = useState<number | null>(null);
@@ -129,7 +126,7 @@ export default function HomeScreen() {
             setPlayingPreview(null);
             setIsPreviewPlaying(false);
           }
-        }
+        },
       );
 
       setSound(newSound);
@@ -193,26 +190,28 @@ export default function HomeScreen() {
     const cleanName = selectedAudio;
     const alarmId = Date.now().toString();
     const timeString = `${String(hour).padStart(2, "0")}:${String(
-      minutes
+      minutes,
     ).padStart(2, "0")}`;
 
-    AlarmStorage.saveAlarm({
+    const activeAlarm: Alarm = {
       id: alarmId,
       time: timeString,
       day,
       enabled: true,
       trackIds: [cleanName],
       recurring: isRecurring,
-    });
+      hour: String(hour).padStart(2, "0"),
+      minutes: String(minutes).padStart(2, "0"),
+      isRecurring: isRecurring.toString(),
+      selectedAudio: cleanName,
+    };
+
+    createNewAlarm(activeAlarm);
 
     router.push({
       pathname: "/active-alarm",
       params: {
-        hour: String(hour).padStart(2, "0"),
-        minutes: String(minutes).padStart(2, "0"),
-        day,
-        isRecurring: isRecurring.toString(),
-        selectedAudio: cleanName,
+        id: alarmId,
       },
     });
   };
@@ -290,12 +289,14 @@ export default function HomeScreen() {
                 />
               )}
             </View>
-            <View style={{
+            <View
+              style={{
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "space-between",
                 width: "100%",
-              }}>
+              }}
+            >
               <ThemedText type="subtitle">Day</ThemedText>
               {Platform.OS === "ios" ? (
                 <IOSDayPicker
@@ -310,18 +311,18 @@ export default function HomeScreen() {
                   onDayChange={setDay}
                 />
               )}
-          </View>
-          <View style={styles.recurringContainer}>
-            <View style={styles.recurringSection}>
-              <ThemedText type="subtitle">Recurring</ThemedText>
-              <Switch
-                value={isRecurring}
-                onValueChange={setIsRecurring}
-                trackColor={{ false: "#767577", true: "#81b0ff" }}
-                thumbColor={isRecurring ? "#4CAF50" : "#f4f3f4"}
-              />
             </View>
-          </View>
+            <View style={styles.recurringContainer}>
+              <View style={styles.recurringSection}>
+                <ThemedText type="subtitle">Recurring</ThemedText>
+                <Switch
+                  value={isRecurring}
+                  onValueChange={setIsRecurring}
+                  trackColor={{ false: "#767577", true: "#81b0ff" }}
+                  thumbColor={isRecurring ? "#4CAF50" : "#f4f3f4"}
+                />
+              </View>
+            </View>
           </View>
           <View style={styles.alarmAudioOptions}>
             <ThemedText type="subtitle">Select soundtrack</ThemedText>
@@ -338,8 +339,8 @@ export default function HomeScreen() {
                     {selectedBelongsToMusic
                       ? "Music"
                       : selectedBelongsToSpeech
-                      ? "Speech"
-                      : "Other"}
+                        ? "Speech"
+                        : "Other"}
                   </Text>
                 </View>
                 <Text style={styles.audioLabel}>{selectedAudio}</Text>
@@ -347,10 +348,10 @@ export default function HomeScreen() {
             ) : null}
             {(() => {
               const selectedBelongsToMusic = selectedAudio
-                ? audioCollections.get("MUSIC")?.has(selectedAudio) ?? false
+                ? (audioCollections.get("MUSIC")?.has(selectedAudio) ?? false)
                 : false;
               const selectedBelongsToSpeech = selectedAudio
-                ? audioCollections.get("SPEECH")?.has(selectedAudio) ?? false
+                ? (audioCollections.get("SPEECH")?.has(selectedAudio) ?? false)
                 : false;
 
               return (
@@ -374,7 +375,7 @@ export default function HomeScreen() {
                       nestedScrollEnabled={true}
                     >
                       {Array.from(
-                        audioCollections.get("MUSIC")?.values() ?? []
+                        audioCollections.get("MUSIC")?.values() ?? [],
                       ).map((mapping) => {
                         const cleanName =
                           mapping &&
@@ -526,7 +527,7 @@ export default function HomeScreen() {
                         </View>
                       </View>
                     );
-                  }
+                  },
                 )}
               </ScrollView>
             )}{" "}
