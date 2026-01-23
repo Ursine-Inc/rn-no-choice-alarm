@@ -9,7 +9,10 @@ import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useActiveAlarm } from "@/hooks/useActiveAlarm";
+<<<<<<< HEAD
 import { useAlarmStorage } from "@/hooks/useAlarmStorage";
+=======
+>>>>>>> main
 import { useAudio } from "@/hooks/useAudio";
 import { ENABLE_DELETE_ALL } from "./alarms";
 
@@ -28,7 +31,11 @@ export default function ActiveAlarmScreen() {
     selectedAudio,
     activeAlarm,
   } = useActiveAlarm();
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> main
   const { getAudioSource } = useAudio();
   const [countdown, setCountdown] = useState("");
   const [scaleAnim] = useState(new Animated.Value(0));
