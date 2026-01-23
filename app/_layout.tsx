@@ -3,6 +3,7 @@ import { Stack } from "expo-router";
 import "react-native-reanimated";
 
 import { ActiveAlarmProvider } from "@/hooks/useActiveAlarm";
+import { AlarmStorageProvider } from "@/hooks/useAlarmStorage";
 import { AudioProvider } from "@/hooks/useAudio";
 import { useEffect, useRef } from "react";
 import { Animated } from "react-native";
@@ -29,16 +30,20 @@ export default function RootLayout() {
 
   return (
     <AudioProvider>
-    <ActiveAlarmProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <Stack screenOptions={{
-          headerShown: false,
-        }}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-      </GestureHandlerRootView>
-    </ActiveAlarmProvider>
+      <AlarmStorageProvider>
+        <ActiveAlarmProvider>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+              }}
+            >
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+          </GestureHandlerRootView>
+        </ActiveAlarmProvider>
+      </AlarmStorageProvider>
     </AudioProvider>
   );
 }

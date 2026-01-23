@@ -13,6 +13,8 @@ config.resolver.alias = {
   "@/constants": path.resolve(__dirname, "constants"),
   "@/components": path.resolve(__dirname, "components"),
   "@/data": path.resolve(__dirname, "data"),
+  "@/themes": path.resolve(__dirname, "themes"),
+  "@/types": path.resolve(__dirname, "types"),
 };
 
 module.exports = config;

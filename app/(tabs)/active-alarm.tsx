@@ -9,12 +9,16 @@ import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useActiveAlarm } from "@/hooks/useActiveAlarm";
+<<<<<<< HEAD
+import { useAlarmStorage } from "@/hooks/useAlarmStorage";
+=======
+>>>>>>> main
 import { useAudio } from "@/hooks/useAudio";
 import { ENABLE_DELETE_ALL } from "./alarms";
 
 export default function ActiveAlarmScreen() {
-  const params = useLocalSearchParams();
-  const { hour, minutes, day, isRecurring, selectedAudio } = params;
+  const { id: alarmId } = useLocalSearchParams<{ id: string }>();
+  const { getAlarm } = useAlarmStorage();
 
   const {
     setHasActiveAlarm,
@@ -23,8 +27,15 @@ export default function ActiveAlarmScreen() {
     isAlarmCountdownPaused,
     isAlarmCancelled,
     cancelAlarm,
+    turnOffAlarm,
+    selectedAudio,
+    activeAlarm,
   } = useActiveAlarm();
+<<<<<<< HEAD
+
+=======
   
+>>>>>>> main
   const { getAudioSource } = useAudio();
   const [countdown, setCountdown] = useState("");
   const [scaleAnim] = useState(new Animated.Value(0));
@@ -67,7 +78,7 @@ export default function ActiveAlarmScreen() {
             if (status.isLoaded && status.didJustFinish && !status.isLooping) {
               setIsAlarmSounding(false);
             }
-          }
+          },
         );
 
         setSound(newSound);
@@ -76,7 +87,7 @@ export default function ActiveAlarmScreen() {
         alarmTriggeredRef.current = false;
       }
     },
-    [getAudioSource, isAlarmKilled]
+    [getAudioSource, isAlarmKilled],
   );
 
   const handleCancel = () => {
@@ -85,32 +96,14 @@ export default function ActiveAlarmScreen() {
   };
 
   useEffect(() => {
-    return () => {
-      if (sound) {
-        console.log("Cleaning up alarm sound");
-        sound.stopAsync();
-        sound.unloadAsync();
-      }
-    };
-  }, [sound]);
-
-  useEffect(() => {
-    if (isAlarmCancelled) {
-      alarmTriggeredRef.current = false;
-      setSound(null);
-      setIsAlarmSounding(false);
-      setCountdown("Alarm Cancelled");
-      cancelAlarm();
+    const alarm = getAlarm(alarmId);
+    if (!alarm) {
+      router.push("/");
+      return;
     }
-    if (isAlarmKilled && sound) {
-      sound.stopAsync();
-      sound.unloadAsync();
-      setSound(null);
-      setIsAlarmSounding(false);
-    }
-  }, [isAlarmKilled, sound]);
 
-  useEffect(() => {
+    const { hour, minutes, selectedAudio } = alarm;
+
     Animated.spring(scaleAnim, {
       toValue: 1,
       tension: 50,
@@ -154,27 +147,58 @@ export default function ActiveAlarmScreen() {
 
     return () => clearInterval(interval);
   }, [
-    hour,
-    minutes,
     scaleAnim,
     isAlarmKilled,
-    selectedAudio,
+    isAlarmCancelled,
     playAlarmSound,
     isAlarmSounding,
     isAlarmCountdownPaused,
   ]);
 
   useEffect(() => {
+    if (isAlarmCancelled) {
+      alarmTriggeredRef.current = false;
+      setSound(null);
+      setIsAlarmSounding(false);
+      setCountdown("Alarm Cancelled");
+      cancelAlarm();
+    }
+    if (isAlarmKilled && sound) {
+      sound.stopAsync();
+      sound.unloadAsync();
+      setSound(null);
+      setIsAlarmSounding(false);
+    }
+
     if (isAlarmKilled) {
       const timeout = setTimeout(() => {
         setIsAlarmKilled(false);
         setHasActiveAlarm(false);
+        turnOffAlarm(alarmId);
         router.push("/");
       }, 2000);
 
       return () => clearTimeout(timeout);
     }
-  }, [isAlarmKilled, setHasActiveAlarm, setIsAlarmKilled]);
+  }, [
+    isAlarmKilled,
+    isAlarmCancelled,
+    sound,
+    alarmId,
+    setHasActiveAlarm,
+    setIsAlarmKilled,
+    cancelAlarm,
+  ]);
+
+  useEffect(() => {
+    return () => {
+      if (sound) {
+        console.log("Cleaning up alarm sound");
+        sound.stopAsync();
+        sound.unloadAsync();
+      }
+    };
+  }, [sound]);
 
   return (
     <ParallaxScrollView
@@ -225,7 +249,8 @@ export default function ActiveAlarmScreen() {
                 isAlarmKilled && styles.alarmTimeKilled,
               ]}
             >
-              {String(hour).padStart(2, "0")}:{String(minutes).padStart(2, "0")}
+              {String(activeAlarm?.hour).padStart(2, "0")}:
+              {String(activeAlarm?.minutes).padStart(2, "0")}
             </Text>
           </View>
 
@@ -251,13 +276,15 @@ export default function ActiveAlarmScreen() {
           <View style={styles.detailsContainer}>
             <View style={styles.detailRow}>
               <ThemedText style={styles.detailLabel}>Day:</ThemedText>
-              <ThemedText style={styles.detailValue}>{day}</ThemedText>
+              <ThemedText style={styles.detailValue}>
+                {activeAlarm?.day}
+              </ThemedText>
             </View>
 
             <View style={styles.detailRow}>
               <ThemedText style={styles.detailLabel}>Recurring:</ThemedText>
               <ThemedText style={styles.detailValue}>
-                {isRecurring === "true" ? "Yes" : "No"}
+                {activeAlarm?.isRecurring === "true" ? "Yes" : "No"}
               </ThemedText>
             </View>
 

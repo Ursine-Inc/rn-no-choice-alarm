@@ -9,7 +9,6 @@ import { AlarmStorage } from "../../data/AlarmStorage";
 export default function TabLayout() {
   const { hasActiveAlarm } = useActiveAlarm();
   const savedAlarms = AlarmStorage.getAllAlarms();
-  const hasSavedAlarms = savedAlarms.length > 0 || hasActiveAlarm;
 
   return (
     <Tabs
@@ -38,7 +37,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="alarm.fill" color={color} />
           ),
-          href: hasSavedAlarms ? "/(tabs)/active-alarm" : null,
+          href: hasActiveAlarm ? "/(tabs)/active-alarm" : null,
         }}
       />
       <Tabs.Screen
